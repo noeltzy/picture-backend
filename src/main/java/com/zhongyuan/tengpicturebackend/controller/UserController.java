@@ -109,9 +109,9 @@ public class UserController {
     }
 
     @GetMapping("/get/vo")
-    public BaseResponse<UserVo> addUser(long id) {
+    public BaseResponse<UserVo> getUserVoById(long id) {
         BaseResponse<User> bUser = getUserById(id);
-        return ResultUtils.success(UserVo.convert(bUser.getData()));
+        return ResultUtils.success(UserVo.obj2Vo(bUser.getData()));
     }
 
     @PostMapping("/delete")
@@ -136,14 +136,14 @@ public class UserController {
 
     @PostMapping("/list/page/vo")
     @AuthCheck(mustRole = UserConstant.ADMIN_ROLE)
-    public BaseResponse<Page<UserVo>> listVoPage(@RequestBody UserQueryRequest userQueryRequest) {
+    public BaseResponse<Page<UserVo>> listUserVoPage(@RequestBody UserQueryRequest userQueryRequest) {
         ThrowUtils.throwIf(userQueryRequest == null , ErrorCode.PARAMS_ERROR);
         int current = userQueryRequest.getCurrent();
         int size = userQueryRequest.getPageSize();
         LambdaQueryWrapper<User> queryWrapper= userService.getQueryWrapper(userQueryRequest);
         Page<User> page = userService.page(new Page<>(current, size), queryWrapper);
         Page<UserVo> userPage = new Page<>(current,size,page.getTotal());
-        userPage.setRecords(page.getRecords().stream().map(UserVo::convert).collect(Collectors.toList()));
+        userPage.setRecords(page.getRecords().stream().map(UserVo::obj2Vo).collect(Collectors.toList()));
         return ResultUtils.success(userPage);
     }
 }

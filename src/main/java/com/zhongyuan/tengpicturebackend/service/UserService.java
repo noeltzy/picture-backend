@@ -29,4 +29,7 @@ public interface UserService extends IService<User> {
     LoginUserVo userLogin(UserLoginRequest userLoginRequest, HttpServletRequest request);
 
     LambdaQueryWrapper<User> getQueryWrapper(UserQueryRequest userQueryRequest);
+
+    boolean isAdmin(User loginUser);
+
 }

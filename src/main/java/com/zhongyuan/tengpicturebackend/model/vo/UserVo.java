@@ -5,7 +5,6 @@ import lombok.Data;
 import org.springframework.beans.BeanUtils;
 
 import java.io.Serializable;
-import java.util.Date;
 
 /**
  * 用户
@@ -52,7 +51,7 @@ public class UserVo implements Serializable {
      * @param user 用户
      * @return vo
      */
-    public static UserVo convert(User user) {
+    public static UserVo obj2Vo(User user) {
         UserVo userVo = new UserVo();
         BeanUtils.copyProperties(user, userVo);
         return userVo;
