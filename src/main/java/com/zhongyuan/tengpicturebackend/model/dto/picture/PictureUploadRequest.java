@@ -15,4 +15,10 @@ public class PictureUploadRequest implements Serializable {
      * 不为空则更新图片
      */
     private Long id;
+    //url
+    private String url;
+    // 只提供给批量抓取图片使用
+    private String batchFetchDefaultName;
+    // 只提供给批量抓取图片使用
+    private String category;
 }

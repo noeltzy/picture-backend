@@ -2,6 +2,8 @@ package com.zhongyuan.tengpicturebackend.service;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.zhongyuan.tengpicturebackend.model.dto.picture.PictureQueryRequest;
+import com.zhongyuan.tengpicturebackend.model.dto.picture.PictureReviewRequest;
+import com.zhongyuan.tengpicturebackend.model.dto.picture.PictureUploadByBatchRequest;
 import com.zhongyuan.tengpicturebackend.model.dto.picture.PictureUploadRequest;
 import com.zhongyuan.tengpicturebackend.model.entity.Picture;
 import com.baomidou.mybatisplus.extension.service.IService;
@@ -20,11 +22,22 @@ import java.util.List;
 public interface PictureService extends IService<Picture> {
 
 
-    PictureVo uploadPicture(MultipartFile multipartFile, PictureUploadRequest uploadRequest, User loginUser);
+    PictureVo uploadPicture(Object inputSource, PictureUploadRequest uploadRequest, User loginUser);
 
     void validPicture(Picture picture);
 
     LambdaQueryWrapper<Picture> getQueryWrapper(PictureQueryRequest pictureQueryRequest);
 
     List<PictureVo> toVoList(List<Picture> records, HttpServletRequest request);
+
+    /**
+     *  图片审核
+     * @param pictureReviewRequest 请求参数
+     * @param user 当前用户
+     */
+    void reviewPicture(PictureReviewRequest pictureReviewRequest,User user);
+
+    void setReviewParam(Picture picture, User loginUser);
+
+    Integer uploadPictureByBatch(PictureUploadByBatchRequest pictureUploadByBatchRequest, User loginUser);
 }

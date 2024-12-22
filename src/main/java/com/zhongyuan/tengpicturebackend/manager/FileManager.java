@@ -24,6 +24,7 @@ import java.util.List;
 
 @Service
 @Slf4j
+@Deprecated
 public class FileManager {
     final long _1M = 1024 * 1024;
     final List<String> IMG_ALLOW_FILE_SUFFIX = Arrays.asList("jpg", "png", "jpeg", "gif", "webp", "svg");
@@ -45,7 +46,8 @@ public class FileManager {
         validPicture(file);
         //拼接图片访问地址
         String uuid = RandomUtil.randomNumbers(12);
-        String suffix = FileUtil.getSuffix(file.getOriginalFilename());
+        String originalFilename = file.getOriginalFilename();
+        String suffix = FileUtil.getSuffix(originalFilename);
         String uploadFileName = String.format("%s_%s.%s", DateUtil.formatDate(new Date()), uuid, suffix);
         String uploadPath = String.format("/%s/%s", uploadPathPrefix, uploadFileName);
         //上传图片
@@ -63,7 +65,7 @@ public class FileManager {
             PictureUploadResult pictureUploadResult = new PictureUploadResult();
             double picScale = NumberUtil.round(width * 1.0 / height, 2).doubleValue();
             pictureUploadResult.setUrl(cosConfig.getHost() + uploadPath);
-            pictureUploadResult.setPicName(FileUtil.mainName(file.getOriginalFilename()));
+            pictureUploadResult.setPicName(FileUtil.mainName(originalFilename));
             pictureUploadResult.setPicFormat(format);
             pictureUploadResult.setPicSize(file.getSize());
             pictureUploadResult.setPicWidth(width);
@@ -71,7 +73,7 @@ public class FileManager {
             pictureUploadResult.setPicScale(picScale);
             return pictureUploadResult;
         } catch (IOException e) {
-            log.error("file upload error,path:{}", file.getOriginalFilename(), e);
+            log.error("file upload error,path:{}", originalFilename, e);
             throw new BusinessException(ErrorCode.SYSTEM_ERROR);
         } finally {
             // 删除临时文件
@@ -90,6 +92,7 @@ public class FileManager {
         // 校验文件后缀
         ThrowUtils.throwIf(!IMG_ALLOW_FILE_SUFFIX.contains(fileSuffix), ErrorCode.SYSTEM_ERROR, "图片格式不正确");
     }
+
 
     public void deleteTempFile(File file) {
         if (file == null) {
