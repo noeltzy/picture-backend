@@ -1,12 +1,15 @@
 package com.zhongyuan.tengpicturebackend.controller;
 
 
+import cn.hutool.core.util.RandomUtil;
+import cn.hutool.json.JSONUtil;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.zhongyuan.tengpicturebackend.annotation.AuthCheck;
 import com.zhongyuan.tengpicturebackend.common.BaseResponse;
 import com.zhongyuan.tengpicturebackend.common.IdRequest;
 import com.zhongyuan.tengpicturebackend.common.ResultUtils;
+import com.zhongyuan.tengpicturebackend.constant.RedisConstant;
 import com.zhongyuan.tengpicturebackend.constant.UserConstant;
 import com.zhongyuan.tengpicturebackend.exception.ErrorCode;
 import com.zhongyuan.tengpicturebackend.exception.ThrowUtils;
@@ -20,6 +23,11 @@ import com.zhongyuan.tengpicturebackend.model.vo.UserVo;
 import com.zhongyuan.tengpicturebackend.service.PictureService;
 import com.zhongyuan.tengpicturebackend.service.UserService;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.data.redis.core.StringRedisTemplate;
+import org.springframework.data.redis.core.ValueOperations;
+import org.springframework.util.DigestUtils;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -28,6 +36,7 @@ import javax.servlet.http.HttpServletRequest;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 
 @RestController
 @RequestMapping("/picture")
@@ -39,6 +48,10 @@ public class PictureController {
     @Resource
     UserService userService;
 
+    @Resource
+    StringRedisTemplate stringRedisTemplate;
+    @Autowired
+    private RedisTemplate<Object, Object> redisTemplate;
 
     /**
      * 更新图片 管理员
@@ -209,6 +222,46 @@ public class PictureController {
         Page<Picture> page = pictureService.page(new Page<>(current, size), queryWrapper);
         Page<PictureVo> pictureVoPage = new Page<>(current, size, page.getTotal());
         pictureVoPage.setRecords(pictureService.toVoList(page.getRecords(), request));
+        return ResultUtils.success(pictureVoPage);
+    }
+    /**
+     * 分页查询图片VO 有缓存
+     *
+     * @param pictureQueryRequest 查询请求
+     * @param request             请求
+     * @return 图片vo分页
+     */
+    @PostMapping("/list/page/vo/catch")
+    public BaseResponse<Page<PictureVo>> listPictureVoPageWithCatch(@RequestBody PictureQueryRequest pictureQueryRequest, HttpServletRequest request) {
+        ThrowUtils.throwIf(pictureQueryRequest == null, ErrorCode.PARAMS_ERROR);
+        int current = pictureQueryRequest.getCurrent();
+        int size = pictureQueryRequest.getPageSize();
+        // 限制爬虫
+        ThrowUtils.throwIf(current < 0 || size > 20, ErrorCode.PARAMS_ERROR);
+        //设置查询条件一定是审核完毕的
+        pictureQueryRequest.setReviewStatus(PictureReviewStatusEnum.PASS.getValue());
+        //查询缓存
+        String queryCondition = JSONUtil.toJsonStr(pictureQueryRequest);
+        String hashKey = DigestUtils.md5DigestAsHex(queryCondition.getBytes());
+        String redisKey = String.format("%s:%s", RedisConstant.LIST_PICTURE_KEY_PREFIX,hashKey);
+        ValueOperations<String, String> stringStringValueOperations = stringRedisTemplate.opsForValue();
+        String cachedValue = stringStringValueOperations.get(redisKey);
+        if(cachedValue!=null){
+            // 缓存命中
+            Page<PictureVo> pictureVoPage = JSONUtil.toBean(cachedValue, Page.class);
+            return ResultUtils.success(pictureVoPage);
+        }
+        //查询数据库
+        LambdaQueryWrapper<Picture> queryWrapper = pictureService.getQueryWrapper(pictureQueryRequest);
+        Page<Picture> page = pictureService.page(new Page<>(current, size), queryWrapper);
+        Page<PictureVo> pictureVoPage = new Page<>(current, size, page.getTotal());
+        pictureVoPage.setRecords(pictureService.toVoList(page.getRecords(), request));
+        //缓存
+        String catchValue = JSONUtil.toJsonStr(pictureVoPage);
+        //! 设置随机缓存过期时间防止缓存雪崩 随机5-10分钟
+        long expireTime = RedisConstant.LIST_PICTURE_TTL + RandomUtil.randomInt(0,300);
+        stringStringValueOperations.set(redisKey,catchValue,expireTime, TimeUnit.SECONDS);
+
         return ResultUtils.success(pictureVoPage);
     }
 
