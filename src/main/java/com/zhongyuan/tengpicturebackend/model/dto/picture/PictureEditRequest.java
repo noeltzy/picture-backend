@@ -20,18 +20,16 @@ public class PictureEditRequest implements Serializable {
      * 图片名称
      */
     private String name;
-
     /**
      * 简介
      */
     private String introduction;
-
-
-
     /**
      * 分类
      */
     private String category;
+
+
 
     /**
      * 标签（JSON 数组）

@@ -1,12 +1,15 @@
 package com.zhongyuan.tengpicturebackend.manager.upload;
 
+import cn.hutool.core.collection.CollUtil;
 import cn.hutool.core.date.DateUtil;
 import cn.hutool.core.io.FileUtil;
 import cn.hutool.core.io.file.FileNameUtil;
 import cn.hutool.core.util.NumberUtil;
 import cn.hutool.core.util.RandomUtil;
 import com.qcloud.cos.model.PutObjectResult;
+import com.qcloud.cos.model.ciModel.persistence.CIObject;
 import com.qcloud.cos.model.ciModel.persistence.ImageInfo;
+import com.qcloud.cos.model.ciModel.persistence.ProcessResults;
 import com.zhongyuan.tengpicturebackend.config.CosConfig;
 import com.zhongyuan.tengpicturebackend.exception.BusinessException;
 import com.zhongyuan.tengpicturebackend.exception.ErrorCode;
@@ -56,10 +59,19 @@ public abstract class PictureUploadTemplate {
         File tmpFile = null;
         try {
             tmpFile = File.createTempFile(uploadPath, null);
-            //TODO  处理文件来源
             save2tmpFile(inputSource, tmpFile);
+            // 1. 上传文件到cos
+            PutObjectResult putObjectResult = cosManager.putPictureObject(tmpFile, uploadPath);
+            // 2. 获取图片信息
+            ImageInfo imageInfo = putObjectResult.getCiUploadResult().getOriginalInfo().getImageInfo();
+            ProcessResults processResults = putObjectResult.getCiUploadResult().getProcessResults();
+            List<CIObject> objectList = processResults.getObjectList();
+            if(CollUtil.isNotEmpty(objectList)){
+                CIObject ciObject = objectList.get(0);
+                return getPictureUploadResult(originalFilename,ciObject);
+            }
             // 上传到cos 并返回信息
-            return getPictureUploadResult(tmpFile, uploadPath, originalFilename);
+            return getPictureUploadResult(imageInfo,tmpFile, uploadPath, originalFilename);
         } catch (IOException e) {
             log.error("file upload error,path:{}", originalFilename, e);
             throw new BusinessException(ErrorCode.SYSTEM_ERROR);
@@ -71,6 +83,23 @@ public abstract class PictureUploadTemplate {
 
     }
 
+    private PictureUploadResult getPictureUploadResult(String originalFilename, CIObject ciObject) {
+        String format = ciObject.getFormat();
+        int width = ciObject.getWidth();
+        int height = ciObject.getHeight();
+        // 3 填入图片上传结果
+        PictureUploadResult pictureUploadResult = new PictureUploadResult();
+        double picScale = NumberUtil.round(width * 1.0 / height, 2).doubleValue();
+        pictureUploadResult.setUrl(cosConfig.getHost() + "/"+ciObject.getKey());
+        pictureUploadResult.setPicName(FileUtil.mainName(originalFilename));
+        pictureUploadResult.setPicFormat(format);
+        pictureUploadResult.setPicSize(ciObject.getSize().longValue());
+        pictureUploadResult.setPicWidth(width);
+        pictureUploadResult.setPicHeight(height);
+        pictureUploadResult.setPicScale(picScale);
+        return pictureUploadResult;
+    }
+
     /**
      * 上传本地图像文件到cos
      *
@@ -79,11 +108,8 @@ public abstract class PictureUploadTemplate {
      * @param originalFilename 原始文件名
      * @return 上传结果
      */
-    private PictureUploadResult getPictureUploadResult(File tmpFile, String uploadPath, String originalFilename) {
-        // 1. 上传文件到cos
-        PutObjectResult putObjectResult = cosManager.putPictureObject(tmpFile, uploadPath);
-        // 2. 获取图片信息
-        ImageInfo imageInfo = putObjectResult.getCiUploadResult().getOriginalInfo().getImageInfo();
+    private PictureUploadResult getPictureUploadResult(ImageInfo imageInfo,File tmpFile, String uploadPath, String originalFilename) {
+
         String format = imageInfo.getFormat();
         int width = imageInfo.getWidth();
         int height = imageInfo.getHeight();

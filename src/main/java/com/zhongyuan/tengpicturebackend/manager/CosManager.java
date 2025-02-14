@@ -1,5 +1,7 @@
 package com.zhongyuan.tengpicturebackend.manager;
 
+import cn.hutool.core.io.FileUtil;
+import cn.hutool.db.PageResult;
 import com.qcloud.cos.COSClient;
 import com.qcloud.cos.model.PutObjectRequest;
 import com.qcloud.cos.model.PutObjectResult;
@@ -9,6 +11,8 @@ import org.springframework.stereotype.Component;
 
 import javax.annotation.Resource;
 import java.io.File;
+import java.util.ArrayList;
+import java.util.List;
 
 @Component
 public class CosManager {
@@ -34,7 +38,20 @@ public class CosManager {
     public PutObjectResult putPictureObject( File file,String key){
         PutObjectRequest putObjectRequest = new PutObjectRequest(cosConfig.getBucket(), key, file);
         PicOperations picOperations = new PicOperations();
+        // 返回原图信息
         picOperations.setIsPicInfo(1);
+        // 构造压缩规则
+        List<PicOperations.Rule> rules = new ArrayList<>();
+        String webpKey = FileUtil.mainName(key) + ".webp";
+        // 压缩格式为 webp
+        PicOperations.Rule compressRule = new PicOperations.Rule();
+        compressRule.setRule("imageMogr2/format/webp");
+        compressRule.setBucket(cosConfig.getBucket());
+        compressRule.setFileId(webpKey);
+        rules.add(compressRule);
+
+        // 构造参数获取
+        picOperations.setRules(rules);
         putObjectRequest.setPicOperations(picOperations);
         return  cosClient.putObject(putObjectRequest);
     }

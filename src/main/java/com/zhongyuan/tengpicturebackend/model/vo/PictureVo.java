@@ -61,6 +61,7 @@ public class PictureVo implements Serializable {
      */
     private Integer picHeight;
 
+
     /**
      * 图片宽高比例
      */
@@ -90,6 +91,8 @@ public class PictureVo implements Serializable {
      * 更新时间
      */
     private Date updateTime;
+
+    private Long spaceId;
 
     /**
      * 图片创建人

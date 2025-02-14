@@ -1,6 +1,7 @@
 package com.zhongyuan.tengpicturebackend.controller;
 
 
+import cn.hutool.core.bean.BeanUtil;
 import cn.hutool.core.util.RandomUtil;
 import cn.hutool.json.JSONUtil;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
@@ -15,12 +16,14 @@ import com.zhongyuan.tengpicturebackend.exception.ErrorCode;
 import com.zhongyuan.tengpicturebackend.exception.ThrowUtils;
 import com.zhongyuan.tengpicturebackend.model.dto.picture.*;
 import com.zhongyuan.tengpicturebackend.model.entity.Picture;
+import com.zhongyuan.tengpicturebackend.model.entity.Space;
 import com.zhongyuan.tengpicturebackend.model.entity.User;
 import com.zhongyuan.tengpicturebackend.model.enums.PictureReviewStatusEnum;
 import com.zhongyuan.tengpicturebackend.model.vo.PictureTagCategory;
 import com.zhongyuan.tengpicturebackend.model.vo.PictureVo;
 import com.zhongyuan.tengpicturebackend.model.vo.UserVo;
 import com.zhongyuan.tengpicturebackend.service.PictureService;
+import com.zhongyuan.tengpicturebackend.service.SpaceService;
 import com.zhongyuan.tengpicturebackend.service.UserService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -36,6 +39,7 @@ import javax.servlet.http.HttpServletRequest;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
+import java.util.Objects;
 import java.util.concurrent.TimeUnit;
 
 @RestController
@@ -50,6 +54,9 @@ public class PictureController {
 
     @Resource
     StringRedisTemplate stringRedisTemplate;
+
+    @Resource
+    SpaceService spaceService;
     @Autowired
     private RedisTemplate<Object, Object> redisTemplate;
 
@@ -173,15 +180,9 @@ public class PictureController {
     @PostMapping("/delete")
     public BaseResponse<Boolean> deletePicture(@RequestBody IdRequest idRequest, HttpServletRequest request) {
         ThrowUtils.throwIf(idRequest == null || idRequest.getId() <= 0, ErrorCode.PARAMS_ERROR);
-        // 必须存在
-        Picture oldPic = pictureService.getById(idRequest.getId());
-        ThrowUtils.throwIf(oldPic == null, ErrorCode.NOT_FOUND_ERROR, "图片不存在");
-        // 本人或者管理员
         User loginUser = userService.getLoginUser(request);
-        ThrowUtils.throwIf(!oldPic.getUserId().equals(loginUser.getId()) && !userService.isAdmin(loginUser), ErrorCode.NO_AUTH_ERROR);
-        // 数据库删除
-        boolean result = pictureService.removeById(idRequest.getId());
-        ThrowUtils.throwIf(!result, ErrorCode.NOT_FOUND_ERROR, "删除图片失败");
+        // 必须存在
+        pictureService.deletePicture(idRequest.getId(), loginUser);
         return ResultUtils.success(true);
     }
 
@@ -198,6 +199,12 @@ public class PictureController {
         // 必须存在且审核通过
         Picture picture = pictureService.lambdaQuery().eq(Picture::getId, id).one();
         ThrowUtils.throwIf(picture == null, ErrorCode.NOT_FOUND_ERROR);
+        // 公共图库或者本人图库
+        if(picture.getSpaceId()!=null){
+            User loginUser = userService.getLoginUser(request);
+            pictureService.checkPictureOptionAuth(picture, loginUser);
+        }
+
         UserVo userVo = UserVo.obj2Vo(userService.getLoginUser(request));
         return ResultUtils.success(PictureVo.obj2Vo(picture, userVo));
     }
@@ -218,6 +225,15 @@ public class PictureController {
         ThrowUtils.throwIf(current < 0 || size > 20, ErrorCode.PARAMS_ERROR);
         //设置查询条件一定是审核完毕的
         pictureQueryRequest.setReviewStatus(PictureReviewStatusEnum.PASS.getValue());
+        Long spaceId = pictureQueryRequest.getSpaceId();
+        if(spaceId!=null){
+            User loginUser = userService.getLoginUser(request);
+            boolean exists = spaceService.lambdaQuery().eq(Space::getId, spaceId).exists();
+            ThrowUtils.throwIf(!exists, ErrorCode.NOT_FOUND_ERROR,"空间不存在");
+            Picture picture =new Picture();
+            BeanUtil.copyProperties(pictureQueryRequest,picture);
+            pictureService.checkPictureOptionAuth(picture, loginUser);
+         }
         LambdaQueryWrapper<Picture> queryWrapper = pictureService.getQueryWrapper(pictureQueryRequest);
         Page<Picture> page = pictureService.page(new Page<>(current, size), queryWrapper);
         Page<PictureVo> pictureVoPage = new Page<>(current, size, page.getTotal());
@@ -285,7 +301,7 @@ public class PictureController {
         ThrowUtils.throwIf(oldPic == null, ErrorCode.NOT_FOUND_ERROR, "图片不存在");
         // 本人或者管理员
         User loginUser = userService.getLoginUser(request);
-        ThrowUtils.throwIf(!oldPic.getUserId().equals(loginUser.getId()) && !userService.isAdmin(loginUser), ErrorCode.NO_AUTH_ERROR);
+        pictureService.checkPictureOptionAuth(oldPic,loginUser);
         // 数据库操作
         pictureService.setReviewParam(picture, loginUser);
         boolean result = pictureService.updateById(picture);
