@@ -27,7 +27,7 @@ public interface SpaceService extends IService<Space> {
     List<SpaceVO> toVoList(List<Space> spaces, HttpServletRequest request);
     void fillSpaceLevel(Space space);
 
-    public long addSpace(SpaceAddRequest spaceAddRequest, User loginUser);
+    long addSpace(SpaceAddRequest spaceAddRequest, User loginUser);
 
     void checkVolume(Space space);
 
@@ -36,4 +36,7 @@ public interface SpaceService extends IService<Space> {
      * @param picSize 图片大小
      */
     void updateVolume(Long spaceId, Long picSize);
+
+    void checkOwnerOrAdmin(User loginUser, Space oldSpace);
+
 }

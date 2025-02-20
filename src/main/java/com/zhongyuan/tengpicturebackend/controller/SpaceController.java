@@ -16,6 +16,8 @@ import com.zhongyuan.tengpicturebackend.model.dto.space.SpaceQueryRequest;
 import com.zhongyuan.tengpicturebackend.model.dto.space.SpaceUpdateRequest;
 import com.zhongyuan.tengpicturebackend.model.entity.Space;
 import com.zhongyuan.tengpicturebackend.model.entity.User;
+import com.zhongyuan.tengpicturebackend.model.enums.SpaceLevelEnum;
+import com.zhongyuan.tengpicturebackend.model.vo.SpaceLevel;
 import com.zhongyuan.tengpicturebackend.model.vo.SpaceVO;
 import com.zhongyuan.tengpicturebackend.model.vo.UserVo;
 import com.zhongyuan.tengpicturebackend.service.SpaceService;
@@ -25,7 +27,10 @@ import org.springframework.web.bind.annotation.*;
 
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
+import java.util.Arrays;
 import java.util.Date;
+import java.util.List;
+import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/space")
@@ -98,7 +103,8 @@ public class SpaceController {
         ThrowUtils.throwIf(oldSpace == null, ErrorCode.NOT_FOUND_ERROR, "空间不存在");
         // 本人或者管理员
         User loginUser = userService.getLoginUser(request);
-        ThrowUtils.throwIf(!oldSpace.getUserId().equals(loginUser.getId()) && !userService.isAdmin(loginUser), ErrorCode.NO_AUTH_ERROR);
+
+        spaceService.checkOwnerOrAdmin(loginUser, oldSpace);
         // 数据库删除
         boolean result = spaceService.removeById(idRequest.getId());
         ThrowUtils.throwIf(!result, ErrorCode.NOT_FOUND_ERROR, "删除空间失败");
@@ -111,6 +117,19 @@ public class SpaceController {
         long l = spaceService.addSpace(spaceAddRequest, loginUser);
         return ResultUtils.success(l);
     }
+
+    @GetMapping("/list/level")
+    public BaseResponse<List<SpaceLevel>> listSpaceLevel() {
+        List<SpaceLevel> spaceLevelList = Arrays.stream(SpaceLevelEnum.values()) // 获取所有枚举
+                .map(spaceLevelEnum -> new SpaceLevel(
+                        spaceLevelEnum.getValue(),
+                        spaceLevelEnum.getText(),
+                        spaceLevelEnum.getMaxCount(),
+                        spaceLevelEnum.getMaxSize()))
+                .collect(Collectors.toList());
+        return ResultUtils.success(spaceLevelList);
+    }
+
 
     /**
      * 获取Vo
@@ -167,11 +186,11 @@ public class SpaceController {
         spaceService.validSpace(space,false);
         Long picId = space.getId();
         // 必须存在
-        Space oldPic = spaceService.getById(picId);
-        ThrowUtils.throwIf(oldPic == null, ErrorCode.NOT_FOUND_ERROR, "空间不存在");
+        Space oldSpace = spaceService.getById(picId);
+        ThrowUtils.throwIf(oldSpace == null, ErrorCode.NOT_FOUND_ERROR, "空间不存在");
         // 本人或者管理员
         User loginUser = userService.getLoginUser(request);
-        ThrowUtils.throwIf(!oldPic.getUserId().equals(loginUser.getId()) && !userService.isAdmin(loginUser), ErrorCode.NO_AUTH_ERROR);
+        ThrowUtils.throwIf(!oldSpace.getUserId().equals(loginUser.getId()) && !userService.isAdmin(loginUser), ErrorCode.NO_AUTH_ERROR);
         // 数据库操作
         boolean result = spaceService.updateById(space);
         ThrowUtils.throwIf(!result, ErrorCode.OPERATION_ERROR);

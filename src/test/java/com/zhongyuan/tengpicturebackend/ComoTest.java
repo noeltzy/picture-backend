@@ -12,4 +12,9 @@ public class ComoTest {
         String extName = FileNameUtil.extName(url);
         System.out.println(name+"\n"+extName);
     }
+
+    @Test
+    public void test2(){
+
+    }
 }

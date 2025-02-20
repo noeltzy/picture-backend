@@ -142,13 +142,18 @@ public class SpaceServiceImpl extends ServiceImpl<SpaceMapper, Space>
     public void updateVolume(Long spaceId, Long picSize) {
         boolean update;
         if(picSize>0){
-            update=this.lambdaUpdate().eq(Space::getId, spaceId).setSql("totalSize=totalSize+?,totalCount=totalCount+1", picSize).update();
+            update=this.lambdaUpdate().eq(Space::getId, spaceId).setSql("totalSize=totalSize+{0},totalCount=totalCount+1", picSize).update();
         }
         else{
             picSize=Math.abs(picSize);
-            update = this.lambdaUpdate().eq(Space::getId, spaceId).setSql("totalSize=totalSize-?,totalCount=totalCount-1", picSize).update();
+            update = this.lambdaUpdate().eq(Space::getId, spaceId).setSql("totalSize=totalSize-{0},totalCount=totalCount-1", picSize).update();
         }
         ThrowUtils.throwIf(!update, ErrorCode.OPERATION_ERROR, "更新失败");
+    }
+
+    @Override
+    public void checkOwnerOrAdmin(User loginUser, Space space) {
+        ThrowUtils.throwIf(!space.getUserId().equals(loginUser.getId()) && !userService.isAdmin(loginUser), ErrorCode.NO_AUTH_ERROR);
     }
 }
 

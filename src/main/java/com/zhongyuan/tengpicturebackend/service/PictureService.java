@@ -40,7 +40,7 @@ public interface PictureService extends IService<Picture> {
     void setReviewParam(Picture picture, User loginUser);
 
     Integer uploadPictureByBatch(PictureUploadByBatchRequest pictureUploadByBatchRequest, User loginUser);
-    public void  checkPictureOptionAuth(Picture picture, User loginUser);
+    void  checkPictureOptionAuth(Picture picture, User loginUser);
 
     void deletePicture(Long id, User loginUser);
 }
