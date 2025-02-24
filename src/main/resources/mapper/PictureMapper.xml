@@ -7,6 +7,7 @@
     <resultMap id="BaseResultMap" type="com.zhongyuan.tengpicturebackend.model.entity.Picture">
         <id property="id" column="id"/>
         <result property="url" column="url"/>
+        <result property="thumbnailUrl" column="thumbnailUrl"/>
         <result property="name" column="name"/>
         <result property="introduction" column="introduction"/>
         <result property="category" column="category"/>
@@ -30,7 +31,7 @@
     <sql id="Base_Column_List">
         id
         ,url,name,introduction,category,tags,
-        picSize,picWidth,picHeight,picScale,picFormat,
+        picSize,picWidth,picHeight,picScale,picFormat,thumbnailUrl,
         userId,spaceId,createTime,editTime,updateTime,isDelete,
                 reviewStatus,reviewMessage,reviewerId,reviewTime
     </sql>

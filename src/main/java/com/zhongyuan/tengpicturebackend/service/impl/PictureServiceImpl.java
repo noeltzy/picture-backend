@@ -2,22 +2,26 @@ package com.zhongyuan.tengpicturebackend.service.impl;
 
 import cn.hutool.core.bean.BeanUtil;
 import cn.hutool.core.collection.CollUtil;
+import cn.hutool.core.io.FileUtil;
 import cn.hutool.core.util.ObjUtil;
 import cn.hutool.core.util.StrUtil;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+import com.zhongyuan.tengpicturebackend.api.aliyunai.model.outPainting.CreateOutPaintingTaskRequest;
+import com.zhongyuan.tengpicturebackend.api.aliyunai.model.common.CreateTaskResponse;
+import com.zhongyuan.tengpicturebackend.api.aliyunai.model.outPainting.GetOutPaintingTaskResponse;
+import com.zhongyuan.tengpicturebackend.api.aliyunai.service.AliYunApiService;
+import com.zhongyuan.tengpicturebackend.config.CosConfig;
 import com.zhongyuan.tengpicturebackend.exception.BusinessException;
 import com.zhongyuan.tengpicturebackend.exception.ErrorCode;
 import com.zhongyuan.tengpicturebackend.exception.ThrowUtils;
+import com.zhongyuan.tengpicturebackend.manager.CosManager;
 import com.zhongyuan.tengpicturebackend.manager.upload.FilePictureUpload;
 import com.zhongyuan.tengpicturebackend.manager.upload.PictureUploadTemplate;
 import com.zhongyuan.tengpicturebackend.manager.upload.UrlPictureUpload;
 import com.zhongyuan.tengpicturebackend.mapper.PictureMapper;
 import com.zhongyuan.tengpicturebackend.model.dto.file.PictureUploadResult;
-import com.zhongyuan.tengpicturebackend.model.dto.picture.PictureQueryRequest;
-import com.zhongyuan.tengpicturebackend.model.dto.picture.PictureReviewRequest;
-import com.zhongyuan.tengpicturebackend.model.dto.picture.PictureUploadByBatchRequest;
-import com.zhongyuan.tengpicturebackend.model.dto.picture.PictureUploadRequest;
+import com.zhongyuan.tengpicturebackend.model.dto.picture.*;
 import com.zhongyuan.tengpicturebackend.model.entity.Picture;
 import com.zhongyuan.tengpicturebackend.model.entity.Space;
 import com.zhongyuan.tengpicturebackend.model.entity.User;
@@ -33,7 +37,7 @@ import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.support.TransactionTemplate;
 
@@ -64,6 +68,13 @@ public class PictureServiceImpl extends ServiceImpl<PictureMapper, Picture>
 
     @Resource
     TransactionTemplate transactionTemplate;
+    @Resource
+    AliYunApiService aliYunApiService;
+
+    @Resource
+    private CosConfig cosConfig;
+    @Resource
+    private CosManager cosManager;
 
     @Override
     public PictureVo uploadPicture(Object inputSource, PictureUploadRequest uploadRequest, User loginUser) {
@@ -371,6 +382,59 @@ public class PictureServiceImpl extends ServiceImpl<PictureMapper, Picture>
             }
             return  1;
         });
+    }
+
+    @Async
+    @Override
+    public void clearPictureFile(Picture picture) {
+        // 查看是否存在当前图片
+        String url = picture.getUrl();
+        Long count = this.lambdaQuery().eq(Picture::getUrl, url).count();
+        // 如果只有一条记录用可以删除，超过一条说明有其他记录使用则不适用
+        if(count==null||count>1){
+            return;
+        }
+        String key = this.url2Key(url);
+        //清理原图
+        String originKey = String.format("%s.%s", FileUtil.mainName(key), picture.getPicFormat().toLowerCase());
+        String thumbnailKey= this.url2Key(picture.getThumbnailUrl());
+        //执行清理
+        cosManager.deleteObject(key);
+        cosManager.deleteObject(originKey);
+        cosManager.deleteObject(thumbnailKey);
+    }
+
+    @Override
+    public CreateTaskResponse createPictureOutPaintingTask(CreatePictureOutPaintingTaskRequest createPictureOutPaintingTaskRequest, User loginUser) {
+        // 获取图片信息
+        Long pictureId = createPictureOutPaintingTaskRequest.getPictureId();
+        Picture picture = Optional.ofNullable(this.getById(pictureId))
+                .orElseThrow(() -> new BusinessException(ErrorCode.NOT_FOUND_ERROR));
+        // 权限校验 TODO
+//        checkPictureAuth(loginUser, picture);
+        // 构造请求参数
+        CreateOutPaintingTaskRequest taskRequest = new CreateOutPaintingTaskRequest();
+        CreateOutPaintingTaskRequest.Input input = new CreateOutPaintingTaskRequest.Input();
+        input.setImageUrl(picture.getUrl());
+        taskRequest.setInput(input);
+        BeanUtil.copyProperties(createPictureOutPaintingTaskRequest, taskRequest);
+        // 创建任务
+        return aliYunApiService.createOutPaintingTask(taskRequest);
+    }
+
+    @Override
+    public GetOutPaintingTaskResponse getResult(String taskId) {
+        return  aliYunApiService.getOutPaintingTask(taskId);
+    }
+
+
+    /**
+     * url转换成key
+     * @param url 图片url
+     * @return key string
+     */
+    private String url2Key(String url) {
+        return url.replaceFirst(cosConfig.getHost(),"");
     }
 }
 

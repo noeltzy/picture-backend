@@ -3,15 +3,19 @@ package com.zhongyuan.tengpicturebackend.controller;
 
 import cn.hutool.core.bean.BeanUtil;
 import cn.hutool.core.util.RandomUtil;
+import cn.hutool.core.util.StrUtil;
 import cn.hutool.json.JSONUtil;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.zhongyuan.tengpicturebackend.annotation.AuthCheck;
+import com.zhongyuan.tengpicturebackend.api.aliyunai.model.common.CreateTaskResponse;
+import com.zhongyuan.tengpicturebackend.api.aliyunai.model.outPainting.GetOutPaintingTaskResponse;
 import com.zhongyuan.tengpicturebackend.common.BaseResponse;
 import com.zhongyuan.tengpicturebackend.common.IdRequest;
 import com.zhongyuan.tengpicturebackend.common.ResultUtils;
 import com.zhongyuan.tengpicturebackend.constant.RedisConstant;
 import com.zhongyuan.tengpicturebackend.constant.UserConstant;
+import com.zhongyuan.tengpicturebackend.exception.BusinessException;
 import com.zhongyuan.tengpicturebackend.exception.ErrorCode;
 import com.zhongyuan.tengpicturebackend.exception.ThrowUtils;
 import com.zhongyuan.tengpicturebackend.model.dto.picture.*;
@@ -39,7 +43,6 @@ import javax.servlet.http.HttpServletRequest;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
-import java.util.Objects;
 import java.util.concurrent.TimeUnit;
 
 @RestController
@@ -224,7 +227,6 @@ public class PictureController {
         // 限制爬虫
         ThrowUtils.throwIf(current < 0 || size > 20, ErrorCode.PARAMS_ERROR);
         //设置查询条件一定是审核完毕的
-        pictureQueryRequest.setReviewStatus(PictureReviewStatusEnum.PASS.getValue());
         Long spaceId = pictureQueryRequest.getSpaceId();
         if(spaceId!=null){
             User loginUser = userService.getLoginUser(request);
@@ -233,7 +235,12 @@ public class PictureController {
             Picture picture =new Picture();
             BeanUtil.copyProperties(pictureQueryRequest,picture);
             pictureService.checkPictureOptionAuth(picture, loginUser);
-         }
+        }
+        // 如果有空间Id 查询就不需要审核完毕
+        if(spaceId==null){
+            pictureQueryRequest.setReviewStatus(PictureReviewStatusEnum.PASS.getValue());
+
+        }
         LambdaQueryWrapper<Picture> queryWrapper = pictureService.getQueryWrapper(pictureQueryRequest);
         Page<Picture> page = pictureService.page(new Page<>(current, size), queryWrapper);
         Page<PictureVo> pictureVoPage = new Page<>(current, size, page.getTotal());
@@ -313,10 +320,37 @@ public class PictureController {
     public BaseResponse<PictureTagCategory> getTagCategory() {
         PictureTagCategory pictureTagCategory = new PictureTagCategory();
         List<String> tags = Arrays.asList("热门", "搞笑", "生活", "高清", "默认", "艺术");
-        List<String> categories = Arrays.asList("模板", "电商", "动漫", "素材", "海报");
+        List<String> categories = Arrays.asList("模板", "搞笑","电商", "动漫", "素材", "海报");
         pictureTagCategory.setTags(tags);
         pictureTagCategory.setCategories(categories);
         return ResultUtils.success(pictureTagCategory);
     }
+
+
+    /**
+     * 创建 AI 扩图任务
+     */
+    @PostMapping("/out_painting/create_task")
+    public BaseResponse<CreateTaskResponse> createPictureOutPaintingTask(
+            @RequestBody CreatePictureOutPaintingTaskRequest createPictureOutPaintingTaskRequest,
+            HttpServletRequest request) {
+        if (createPictureOutPaintingTaskRequest == null || createPictureOutPaintingTaskRequest.getPictureId() == null) {
+            throw new BusinessException(ErrorCode.PARAMS_ERROR);
+        }
+        User loginUser = userService.getLoginUser(request);
+        CreateTaskResponse response = pictureService.createPictureOutPaintingTask(createPictureOutPaintingTaskRequest, loginUser);
+        return ResultUtils.success(response);
+    }
+
+    /**
+     * 查询 AI 扩图任务
+     */
+    @GetMapping("/out_painting/get_task")
+    public BaseResponse<GetOutPaintingTaskResponse> getPictureOutPaintingTask(String taskId) {
+        ThrowUtils.throwIf(StrUtil.isBlank(taskId), ErrorCode.PARAMS_ERROR);
+        GetOutPaintingTaskResponse task = pictureService.getResult(taskId);
+        return ResultUtils.success(task);
+    }
+
 
 }

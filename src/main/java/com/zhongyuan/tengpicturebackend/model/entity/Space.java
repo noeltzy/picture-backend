@@ -20,6 +20,12 @@ public class Space {
     @TableId(type = IdType.ASSIGN_ID)
     private Long id;
 
+
+    /**
+     * 空间类型：0-私有 1-团队
+     */
+    private Integer spaceType;
+
     /**
      * 空间名称
      */

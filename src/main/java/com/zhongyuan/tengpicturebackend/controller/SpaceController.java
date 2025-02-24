@@ -18,6 +18,7 @@ import com.zhongyuan.tengpicturebackend.model.entity.Space;
 import com.zhongyuan.tengpicturebackend.model.entity.User;
 import com.zhongyuan.tengpicturebackend.model.enums.SpaceLevelEnum;
 import com.zhongyuan.tengpicturebackend.model.vo.SpaceLevel;
+import com.zhongyuan.tengpicturebackend.model.vo.SpaceUserVO;
 import com.zhongyuan.tengpicturebackend.model.vo.SpaceVO;
 import com.zhongyuan.tengpicturebackend.model.vo.UserVo;
 import com.zhongyuan.tengpicturebackend.service.SpaceService;
@@ -110,6 +111,7 @@ public class SpaceController {
         ThrowUtils.throwIf(!result, ErrorCode.NOT_FOUND_ERROR, "删除空间失败");
         return ResultUtils.success(true);
     }
+
     @PostMapping("/add")
     public BaseResponse<Long> addSpace(@RequestBody SpaceAddRequest spaceAddRequest, HttpServletRequest request) {
         ThrowUtils.throwIf(spaceAddRequest == null, ErrorCode.PARAMS_ERROR);
@@ -141,10 +143,11 @@ public class SpaceController {
     @GetMapping("/get/vo")
     public BaseResponse<SpaceVO> getSpaceVoById(long id, HttpServletRequest request) {
         ThrowUtils.throwIf(id <= 0, ErrorCode.PARAMS_ERROR);
-        // 必须存在且审核通过
         Space space = spaceService.lambdaQuery().eq(Space::getId, id).one();
         ThrowUtils.throwIf(space == null, ErrorCode.NOT_FOUND_ERROR);
         UserVo userVo = UserVo.obj2Vo(userService.getLoginUser(request));
+        Long loginUserId = userService.getLoginUser(request).getId();
+        ThrowUtils.throwIf(!loginUserId.equals(space.getUserId()), ErrorCode.NO_AUTH_ERROR);
         return ResultUtils.success(SpaceVO.objToVo(space, userVo));
     }
 

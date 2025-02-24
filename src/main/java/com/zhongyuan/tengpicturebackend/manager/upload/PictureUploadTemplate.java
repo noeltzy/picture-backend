@@ -6,6 +6,7 @@ import cn.hutool.core.io.FileUtil;
 import cn.hutool.core.io.file.FileNameUtil;
 import cn.hutool.core.util.NumberUtil;
 import cn.hutool.core.util.RandomUtil;
+import cn.hutool.core.util.StrUtil;
 import com.qcloud.cos.model.PutObjectResult;
 import com.qcloud.cos.model.ciModel.persistence.CIObject;
 import com.qcloud.cos.model.ciModel.persistence.ImageInfo;
@@ -51,13 +52,15 @@ public abstract class PictureUploadTemplate {
         String uuid = RandomUtil.randomNumbers(12);
         //TODO 获取originalFilename
         String originalFilename = getFullFileName(inputSource);
-
-        String extName = FileNameUtil.extName(originalFilename);
+        String extName =FileNameUtil.extName(originalFilename);
+        String[] split = extName.split("\\?");
+        extName=split[0];
         String uploadFileName = String.format("%s_%s.%s", DateUtil.formatDate(new Date()), uuid, extName);
         String uploadPath = String.format("/%s/%s", uploadPathPrefix, uploadFileName);
         //上传图片
         File tmpFile = null;
         try {
+            System.out.println(uploadPath);
             tmpFile = File.createTempFile(uploadPath, null);
             save2tmpFile(inputSource, tmpFile);
             // 1. 上传文件到cos
@@ -66,9 +69,16 @@ public abstract class PictureUploadTemplate {
             ImageInfo imageInfo = putObjectResult.getCiUploadResult().getOriginalInfo().getImageInfo();
             ProcessResults processResults = putObjectResult.getCiUploadResult().getProcessResults();
             List<CIObject> objectList = processResults.getObjectList();
+            // 增加对修改后文件信息的获取
             if(CollUtil.isNotEmpty(objectList)){
-                CIObject ciObject = objectList.get(0);
-                return getPictureUploadResult(originalFilename,ciObject);
+                CIObject comPressCiObject = objectList.get(0);
+                // 逻辑是默认没有处理缩略图 则默认使用压缩图
+                CIObject thumbnailCiObject= comPressCiObject;
+                if(objectList.size() > 1){
+                    // 处理了则使用自己的图
+                    thumbnailCiObject = objectList.get(1);
+                }
+                return getPictureUploadResult(imageInfo,originalFilename,comPressCiObject,thumbnailCiObject);
             }
             // 上传到cos 并返回信息
             return getPictureUploadResult(imageInfo,tmpFile, uploadPath, originalFilename);
@@ -83,13 +93,15 @@ public abstract class PictureUploadTemplate {
 
     }
 
-    private PictureUploadResult getPictureUploadResult(String originalFilename, CIObject ciObject) {
-        String format = ciObject.getFormat();
+    private PictureUploadResult getPictureUploadResult(ImageInfo imageInfo,String originalFilename, CIObject ciObject, CIObject thumbnailCiObject) {
+        //格式保留原来格式
+        String format = imageInfo.getFormat();
         int width = ciObject.getWidth();
         int height = ciObject.getHeight();
         // 3 填入图片上传结果
         PictureUploadResult pictureUploadResult = new PictureUploadResult();
         double picScale = NumberUtil.round(width * 1.0 / height, 2).doubleValue();
+
         pictureUploadResult.setUrl(cosConfig.getHost() + "/"+ciObject.getKey());
         pictureUploadResult.setPicName(FileUtil.mainName(originalFilename));
         pictureUploadResult.setPicFormat(format);
@@ -97,6 +109,7 @@ public abstract class PictureUploadTemplate {
         pictureUploadResult.setPicWidth(width);
         pictureUploadResult.setPicHeight(height);
         pictureUploadResult.setPicScale(picScale);
+        pictureUploadResult.setThumbnailUrl(cosConfig.getHost() + "/"+thumbnailCiObject.getKey());
         return pictureUploadResult;
     }
 

@@ -1,4 +1,5 @@
 package com.zhongyuan.tengpicturebackend.service.impl;
+import java.util.Date;
 
 import cn.hutool.core.bean.BeanUtil;
 import cn.hutool.core.collection.CollUtil;
@@ -12,13 +13,18 @@ import com.zhongyuan.tengpicturebackend.mapper.SpaceMapper;
 import com.zhongyuan.tengpicturebackend.model.dto.space.SpaceAddRequest;
 import com.zhongyuan.tengpicturebackend.model.dto.space.SpaceQueryRequest;
 import com.zhongyuan.tengpicturebackend.model.entity.Space;
+import com.zhongyuan.tengpicturebackend.model.entity.SpaceUser;
 import com.zhongyuan.tengpicturebackend.model.entity.User;
 import com.zhongyuan.tengpicturebackend.model.enums.SpaceLevelEnum;
+import com.zhongyuan.tengpicturebackend.model.enums.SpaceRoleEnum;
+import com.zhongyuan.tengpicturebackend.model.enums.SpaceTypeEnum;
 import com.zhongyuan.tengpicturebackend.model.vo.SpaceVO;
 import com.zhongyuan.tengpicturebackend.model.vo.UserVo;
 import com.zhongyuan.tengpicturebackend.service.SpaceService;
+import com.zhongyuan.tengpicturebackend.service.SpaceUserService;
 import com.zhongyuan.tengpicturebackend.service.UserService;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.support.TransactionTemplate;
 
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
@@ -41,18 +47,26 @@ public class SpaceServiceImpl extends ServiceImpl<SpaceMapper, Space>
     @Resource
     UserService userService;
 
+    @Resource
+    SpaceUserService spaceUserService;
+
+    @Resource
+    TransactionTemplate transactionTemplate;
     @Override
     public void validSpace(Space space, boolean add) {
         ThrowUtils.throwIf(space == null, ErrorCode.PARAMS_ERROR);
 
         String spaceName = space.getSpaceName();
         Integer spaceLevel = space.getSpaceLevel();
+        Integer spaceType = space.getSpaceType();
         // 插入时候的校验
         if (add) {
             ThrowUtils.throwIf(StrUtil.isBlank(spaceName), ErrorCode.PARAMS_ERROR, "空间名不能为空");
             ThrowUtils.throwIf(SpaceLevelEnum.getEnumByValue(spaceLevel) == null, ErrorCode.PARAMS_ERROR, "空间等级设置异常");
+            ThrowUtils.throwIf(spaceType==null,ErrorCode.PARAMS_ERROR,"请填写创建空间的类型");
         }//编辑时候的校验
         ThrowUtils.throwIf(StrUtil.isBlank(spaceName) || spaceName.length() > 30, ErrorCode.PARAMS_ERROR, "空间名称设置有误");
+
     }
 
     @Override
@@ -61,11 +75,13 @@ public class SpaceServiceImpl extends ServiceImpl<SpaceMapper, Space>
         Long userId = spaceQueryRequest.getUserId();
         String spaceName = spaceQueryRequest.getSpaceName();
         Integer spaceLevel = spaceQueryRequest.getSpaceLevel();
+        Integer spaceType = spaceQueryRequest.getSpaceType();
         LambdaQueryWrapper<Space> queryWrapper = new LambdaQueryWrapper<>();
         queryWrapper.eq(id != null, Space::getId, id);
         queryWrapper.eq(userId != null, Space::getUserId, userId);
         queryWrapper.like(StrUtil.isNotBlank(spaceName), Space::getSpaceName, spaceName);
         queryWrapper.eq(spaceLevel != null, Space::getSpaceLevel, spaceLevel);
+        queryWrapper.eq(spaceType != null, Space::getSpaceType, spaceType);
         return queryWrapper;
     }
 
@@ -106,6 +122,9 @@ public class SpaceServiceImpl extends ServiceImpl<SpaceMapper, Space>
         if (space.getSpaceLevel() == null) {
             space.setSpaceLevel(SpaceLevelEnum.COMMON.getValue());
         }
+        if(space.getSpaceType()==null){
+            space.setSpaceType(SpaceTypeEnum.PRIVATE.getValue());
+        }
         // 填入空间
         this.fillSpaceLevel(space);
         space.setUserId(loginUser.getId());
@@ -119,13 +138,28 @@ public class SpaceServiceImpl extends ServiceImpl<SpaceMapper, Space>
         // 每个用户只能创建一个空间 加锁
         String lock = String.valueOf(loginUser.getId()).intern();
         synchronized (lock) {
-            boolean exists = this.lambdaQuery().eq(Space::getUserId, loginUser.getId()).exists();
-            ThrowUtils.throwIf(exists, ErrorCode.OPERATION_ERROR, "每个用户只能创建一个空间");
-            boolean save = this.save(space);
-            ThrowUtils.throwIf(!save, ErrorCode.OPERATION_ERROR, "创建失败");
+            // 对两个表进行了管理,需要使用事务 最好使用编程式事务 不使用编程式事务会导致锁失效
+            transactionTemplate.execute((a)->{
+                boolean exists = this.lambdaQuery()
+                        .eq(Space::getUserId, loginUser.getId())
+                        .eq(Space::getSpaceType,space.getSpaceType())
+                        .exists();
+                ThrowUtils.throwIf(exists, ErrorCode.OPERATION_ERROR, "每个用户每类空间只能创建一个");
+                boolean save = this.save(space);
+                ThrowUtils.throwIf(!save, ErrorCode.OPERATION_ERROR, "创建失败");
+                // 如果是团队空间 需要记录团队成员
+                if(space.getSpaceType()==SpaceTypeEnum.TEAM.getValue()){
+                    SpaceUser spaceUser = new SpaceUser();
+                    spaceUser.setSpaceId(space.getId());
+                    spaceUser.setUserId(loginUser.getId());
+                    spaceUser.setSpaceRole(SpaceRoleEnum.ADMIN.getValue());
+                    save = spaceUserService.save(spaceUser);
+                    ThrowUtils.throwIf(!save,ErrorCode.SYSTEM_ERROR,"创建企业图库失败");
+                }
+                return null;
+            });
             return space.getId();
         }
-
     }
 
     @Override

@@ -1,4 +1,7 @@
 spring:
+  session:
+    store-type: redis
+    timeout: 2592000
   config:
     import: "application-secret.yml"
   application:
@@ -44,3 +47,7 @@ knife4j:
         api-rule: package
         api-rule-resources:
           - com.zhongyuan.tengpicturebackend.controller
+
+logging:
+  level:
+    com.qcloud.cos: ERROR

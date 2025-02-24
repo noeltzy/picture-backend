@@ -35,6 +35,12 @@ public class PictureUploadResult implements Serializable {
      * 图片高度
      */
     private int picHeight;
+
+    /**
+     * 缩略图 url
+     */
+    private String thumbnailUrl;
+
     /**
      * 图片宽高比例
      */
@@ -49,6 +55,7 @@ public class PictureUploadResult implements Serializable {
         picture.setPicHeight(pictureUploadResult.getPicHeight());
         picture.setPicScale(pictureUploadResult.getPicScale());
         picture.setPicFormat(pictureUploadResult.getPicFormat());
+        picture.setThumbnailUrl(pictureUploadResult.getThumbnailUrl());
         picture.setUserId(UserId);
         return  picture;
     }

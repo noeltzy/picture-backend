@@ -1,15 +1,13 @@
 package com.zhongyuan.tengpicturebackend.service;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
-import com.zhongyuan.tengpicturebackend.model.dto.picture.PictureQueryRequest;
-import com.zhongyuan.tengpicturebackend.model.dto.picture.PictureReviewRequest;
-import com.zhongyuan.tengpicturebackend.model.dto.picture.PictureUploadByBatchRequest;
-import com.zhongyuan.tengpicturebackend.model.dto.picture.PictureUploadRequest;
+import com.zhongyuan.tengpicturebackend.api.aliyunai.model.common.CreateTaskResponse;
+import com.zhongyuan.tengpicturebackend.api.aliyunai.model.outPainting.GetOutPaintingTaskResponse;
+import com.zhongyuan.tengpicturebackend.model.dto.picture.*;
 import com.zhongyuan.tengpicturebackend.model.entity.Picture;
 import com.baomidou.mybatisplus.extension.service.IService;
 import com.zhongyuan.tengpicturebackend.model.entity.User;
 import com.zhongyuan.tengpicturebackend.model.vo.PictureVo;
-import org.springframework.web.multipart.MultipartFile;
 
 import javax.servlet.http.HttpServletRequest;
 import java.util.List;
@@ -29,7 +27,6 @@ public interface PictureService extends IService<Picture> {
     LambdaQueryWrapper<Picture> getQueryWrapper(PictureQueryRequest pictureQueryRequest);
 
     List<PictureVo> toVoList(List<Picture> records, HttpServletRequest request);
-
     /**
      *  图片审核
      * @param pictureReviewRequest 请求参数
@@ -43,4 +40,12 @@ public interface PictureService extends IService<Picture> {
     void  checkPictureOptionAuth(Picture picture, User loginUser);
 
     void deletePicture(Long id, User loginUser);
+
+    void clearPictureFile(Picture picture);
+
+
+
+    CreateTaskResponse createPictureOutPaintingTask(CreatePictureOutPaintingTaskRequest createPictureOutPaintingTaskRequest, User loginUser);
+
+    GetOutPaintingTaskResponse getResult(String taskId);
 }
