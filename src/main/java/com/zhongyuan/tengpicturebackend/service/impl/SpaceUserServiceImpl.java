@@ -1,5 +1,6 @@
 package com.zhongyuan.tengpicturebackend.service.impl;
 
+import cn.hutool.core.collection.CollUtil;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
@@ -14,6 +15,7 @@ import com.zhongyuan.tengpicturebackend.model.dto.spaceUser.SpaceUserQueryReques
 import com.zhongyuan.tengpicturebackend.model.entity.SpaceUser;
 import com.zhongyuan.tengpicturebackend.model.entity.User;
 import com.zhongyuan.tengpicturebackend.model.enums.SpaceRoleEnum;
+import com.zhongyuan.tengpicturebackend.model.vo.SpaceMemberVo;
 import com.zhongyuan.tengpicturebackend.model.vo.SpaceUserVO;
 import com.zhongyuan.tengpicturebackend.service.SpaceUserService;
 import com.zhongyuan.tengpicturebackend.mapper.SpaceUserMapper;
@@ -30,6 +32,7 @@ import java.util.List;
 @Service
 public class SpaceUserServiceImpl extends ServiceImpl<SpaceUserMapper, SpaceUser>
         implements SpaceUserService {
+
 
     @Override
     public long addSpaceUser(SpaceUserAddRequest spaceUserAddRequest, User loginUser) {
@@ -79,6 +82,17 @@ public class SpaceUserServiceImpl extends ServiceImpl<SpaceUserMapper, SpaceUser
 
         return false;
     }
+
+    @Override
+    public List<SpaceMemberVo> listSpaceMemberVo(Long spaceId) {
+
+        List<SpaceMemberVo> spaceMembers = this.getBaseMapper().getSpaceMembers(spaceId);
+        if(CollUtil.isEmpty(spaceMembers)){
+            return Collections.emptyList();
+        }
+        return spaceMembers;
+    }
+
     private void isUserInSpace(Long userId, Long spaceId) {
         boolean exists = this.lambdaQuery().eq(SpaceUser::getUserId, userId).eq(SpaceUser::getSpaceId, spaceId).exists();
         ThrowUtils.throwIf(exists, ErrorCode.PARAMS_ERROR,"重复加入");

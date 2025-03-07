@@ -39,7 +39,7 @@ public class CreateOutPaintingTaskRequest implements Serializable, ApiRequest {
         /**
          * 可选，逆时针旋转角度，默认值 0，取值范围 [0, 359]
          */
-        private Integer angle;
+        private Integer angle=0;
 
         /**
          * 可选，输出图像的宽高比，默认空字符串，不设置宽高比

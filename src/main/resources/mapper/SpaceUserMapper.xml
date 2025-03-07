@@ -12,8 +12,15 @@
             <result property="createTime" column="createTime" />
             <result property="updateTime" column="updateTime" />
     </resultMap>
-
     <sql id="Base_Column_List">
         id,spaceId,userId,spaceRole,createTime,updateTime
     </sql>
+    <!-- 查询空间成员信息，返回 Map 格式 -->
+    <select id="getSpaceMembers" resultType="com.zhongyuan.tengpicturebackend.model.vo.SpaceMemberVo">
+        SELECT su.userId , u.userAvatar AS userAvatar, su.spaceRole
+        FROM space_user su
+                 JOIN user u ON su.userId = u.id
+        WHERE su.spaceId = #{spaceId}
+    </select>
+
 </mapper>

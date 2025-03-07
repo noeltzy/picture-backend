@@ -349,8 +349,10 @@ public class PictureController {
     public BaseResponse<GetOutPaintingTaskResponse> getPictureOutPaintingTask(String taskId) {
         ThrowUtils.throwIf(StrUtil.isBlank(taskId), ErrorCode.PARAMS_ERROR);
         GetOutPaintingTaskResponse task = pictureService.getResult(taskId);
+        if("SUCCEEDED".equals(task.getOutput().getTaskStatus())){
+            String imgUrl = task.getOutput().getOutputImageUrl();
+
+        }
         return ResultUtils.success(task);
     }
-
-
 }

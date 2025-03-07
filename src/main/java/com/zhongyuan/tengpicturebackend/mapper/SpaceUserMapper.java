@@ -2,6 +2,10 @@ package com.zhongyuan.tengpicturebackend.mapper;
 
 import com.zhongyuan.tengpicturebackend.model.entity.SpaceUser;
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
+import com.zhongyuan.tengpicturebackend.model.vo.SpaceMemberVo;
+
+import java.util.List;
+import java.util.Map;
 
 /**
 * @author Windows11
@@ -10,6 +14,8 @@ import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 * @Entity com.zhongyuan.tengpicturebackend.model.entity.SpaceUser
 */
 public interface SpaceUserMapper extends BaseMapper<SpaceUser> {
+
+     List <SpaceMemberVo> getSpaceMembers(Long spaceId);
 
 }
 

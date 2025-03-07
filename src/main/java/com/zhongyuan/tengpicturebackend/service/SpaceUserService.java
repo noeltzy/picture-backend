@@ -8,6 +8,7 @@ import com.zhongyuan.tengpicturebackend.model.dto.spaceUser.SpaceUserQueryReques
 import com.zhongyuan.tengpicturebackend.model.entity.SpaceUser;
 import com.baomidou.mybatisplus.extension.service.IService;
 import com.zhongyuan.tengpicturebackend.model.entity.User;
+import com.zhongyuan.tengpicturebackend.model.vo.SpaceMemberVo;
 import com.zhongyuan.tengpicturebackend.model.vo.SpaceUserVO;
 
 import java.util.List;
@@ -49,4 +50,6 @@ public interface SpaceUserService extends IService<SpaceUser> {
      * @return 是否操作成功
      */
     boolean editSpaceUser(SpaceUserEditRequest spaceUserEditRequest, User loginUser);
+
+    List<SpaceMemberVo> listSpaceMemberVo(Long spaceId);
 }
