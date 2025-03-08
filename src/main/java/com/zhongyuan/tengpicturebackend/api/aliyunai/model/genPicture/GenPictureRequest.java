@@ -9,8 +9,8 @@ import java.io.Serializable;
 @Data
 public class GenPictureRequest implements Serializable, ApiRequest {
     private String model ="wanx2.1-t2i-turbo";
-    private Input input;
-    private Parameters parameters;
+    private Input input = new Input();
+    private Parameters parameters = new Parameters();
 
     @Data
     public static class Input{

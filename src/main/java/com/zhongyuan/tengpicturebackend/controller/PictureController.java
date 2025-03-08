@@ -9,6 +9,7 @@ import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.zhongyuan.tengpicturebackend.annotation.AuthCheck;
 import com.zhongyuan.tengpicturebackend.api.aliyunai.model.common.CreateTaskResponse;
+import com.zhongyuan.tengpicturebackend.api.aliyunai.model.genPicture.GenPictureRequest;
 import com.zhongyuan.tengpicturebackend.api.aliyunai.model.outPainting.GetOutPaintingTaskResponse;
 import com.zhongyuan.tengpicturebackend.common.BaseResponse;
 import com.zhongyuan.tengpicturebackend.common.IdRequest;
@@ -62,7 +63,6 @@ public class PictureController {
     SpaceService spaceService;
     @Autowired
     private RedisTemplate<Object, Object> redisTemplate;
-
     /**
      * 更新图片 管理员
      *
@@ -86,8 +86,6 @@ public class PictureController {
         ThrowUtils.throwIf(!result, ErrorCode.OPERATION_ERROR);
         return ResultUtils.success(true);
     }
-
-
     /**
      * 根据id获取对象 (admin)
      *
@@ -102,8 +100,6 @@ public class PictureController {
         ThrowUtils.throwIf(picture == null, ErrorCode.NOT_FOUND_ERROR);
         return ResultUtils.success(picture);
     }
-
-
     @PostMapping("/list/page")
     @AuthCheck(mustRole = UserConstant.ADMIN_ROLE)
     public BaseResponse<Page<Picture>> listPicturePage(@RequestBody PictureQueryRequest pictureQueryRequest, HttpServletRequest request) {
@@ -288,7 +284,6 @@ public class PictureController {
         return ResultUtils.success(pictureVoPage);
     }
 
-
     /**
      * 编辑图片
      *
@@ -326,33 +321,4 @@ public class PictureController {
         return ResultUtils.success(pictureTagCategory);
     }
 
-
-    /**
-     * 创建 AI 扩图任务
-     */
-    @PostMapping("/out_painting/create_task")
-    public BaseResponse<CreateTaskResponse> createPictureOutPaintingTask(
-            @RequestBody CreatePictureOutPaintingTaskRequest createPictureOutPaintingTaskRequest,
-            HttpServletRequest request) {
-        if (createPictureOutPaintingTaskRequest == null || createPictureOutPaintingTaskRequest.getPictureId() == null) {
-            throw new BusinessException(ErrorCode.PARAMS_ERROR);
-        }
-        User loginUser = userService.getLoginUser(request);
-        CreateTaskResponse response = pictureService.createPictureOutPaintingTask(createPictureOutPaintingTaskRequest, loginUser);
-        return ResultUtils.success(response);
-    }
-
-    /**
-     * 查询 AI 扩图任务
-     */
-    @GetMapping("/out_painting/get_task")
-    public BaseResponse<GetOutPaintingTaskResponse> getPictureOutPaintingTask(String taskId) {
-        ThrowUtils.throwIf(StrUtil.isBlank(taskId), ErrorCode.PARAMS_ERROR);
-        GetOutPaintingTaskResponse task = pictureService.getResult(taskId);
-        if("SUCCEEDED".equals(task.getOutput().getTaskStatus())){
-            String imgUrl = task.getOutput().getOutputImageUrl();
-
-        }
-        return ResultUtils.success(task);
-    }
 }

@@ -7,6 +7,8 @@ import cn.hutool.core.util.ObjUtil;
 import cn.hutool.core.util.StrUtil;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+import com.zhongyuan.tengpicturebackend.api.aliyunai.model.genPicture.GenPictureRequest;
+import com.zhongyuan.tengpicturebackend.api.aliyunai.model.genPicture.ImageGenerationResponse;
 import com.zhongyuan.tengpicturebackend.api.aliyunai.model.outPainting.CreateOutPaintingTaskRequest;
 import com.zhongyuan.tengpicturebackend.api.aliyunai.model.common.CreateTaskResponse;
 import com.zhongyuan.tengpicturebackend.api.aliyunai.model.outPainting.GetOutPaintingTaskResponse;
@@ -420,9 +422,6 @@ public class PictureServiceImpl extends ServiceImpl<PictureMapper, Picture>
         Long pictureId = createPictureOutPaintingTaskRequest.getPictureId();
         Picture picture = Optional.ofNullable(this.getById(pictureId))
                 .orElseThrow(() -> new BusinessException(ErrorCode.NOT_FOUND_ERROR));
-        // 权限校验 TODO
-//        checkPictureAuth(loginUser, picture);
-        // 构造请求参数
         CreateOutPaintingTaskRequest taskRequest = new CreateOutPaintingTaskRequest();
         CreateOutPaintingTaskRequest.Input input = new CreateOutPaintingTaskRequest.Input();
         input.setImageUrl(picture.getUrl());
@@ -433,8 +432,18 @@ public class PictureServiceImpl extends ServiceImpl<PictureMapper, Picture>
     }
 
     @Override
-    public GetOutPaintingTaskResponse getResult(String taskId) {
+    public CreateTaskResponse createGenPictureTask(GenPictureRequest request, User loginUser) {
+        return aliYunApiService.createGenPictureTask(request);
+    }
+
+    @Override
+    public GetOutPaintingTaskResponse getOutPaintingResult(String taskId) {
         return aliYunApiService.getOutPaintingTask(taskId);
+    }
+
+    @Override
+    public ImageGenerationResponse getGenerationResult(String taskId) {
+        return aliYunApiService.getGenPictureTaskResult(taskId);
     }
 
 

@@ -8,6 +8,7 @@ import cn.hutool.http.HttpResponse;
 import cn.hutool.json.JSONUtil;
 import com.zhongyuan.tengpicturebackend.api.aliyunai.config.AliyunConfig;
 import com.zhongyuan.tengpicturebackend.api.aliyunai.model.common.ApiRequest;
+import com.zhongyuan.tengpicturebackend.api.aliyunai.model.genPicture.ImageGenerationResponse;
 import com.zhongyuan.tengpicturebackend.api.aliyunai.model.outPainting.CreateOutPaintingTaskRequest;
 import com.zhongyuan.tengpicturebackend.api.aliyunai.model.common.CreateTaskResponse;
 import com.zhongyuan.tengpicturebackend.api.aliyunai.model.outPainting.GetOutPaintingTaskResponse;
@@ -29,7 +30,7 @@ public class AliYunApiServiceImpl implements AliYunApiService {
 
     private static final String CREATE_OUT_PAINTING_TASK_URL = "https://dashscope.aliyuncs.com/api/v1/services/aigc/image2image/out-painting";
     private static final String GET_OUT_PAINTING_TASK_URL = "https://dashscope.aliyuncs.com/api/v1/tasks/%s";
-    private static final String CREATE_GEN_PICTURE_TASK_URL = "https://dashscope.aliyuncs.com/api/v1/services/aigc/image2image/gen-picture";
+    private static final String CREATE_GEN_PICTURE_TASK_URL = "https://dashscope.aliyuncs.com/api/v1/services/aigc/text2image/image-synthesis";
 
     @Override
     public CreateTaskResponse createOutPaintingTask(CreateOutPaintingTaskRequest request) {
@@ -54,6 +55,23 @@ public class AliYunApiServiceImpl implements AliYunApiService {
                 throw new BusinessException(ErrorCode.OPERATION_ERROR, "获取任务失败");
             }
             return JSONUtil.toBean(httpResponse.body(), GetOutPaintingTaskResponse.class);
+        }
+    }
+
+    @Override
+    public ImageGenerationResponse getGenPictureTaskResult(String taskId) {
+        String apiKey = aliyunConfig.getApiKey();
+        if (StrUtil.isBlank(taskId)) {
+            throw new BusinessException(ErrorCode.OPERATION_ERROR, "任务 id 不能为空");
+        }
+        try (HttpResponse httpResponse = HttpRequest.get(String.format(GET_OUT_PAINTING_TASK_URL, taskId))
+                .header(Header.AUTHORIZATION, "Bearer " + apiKey)
+                .execute()) {
+            if (!httpResponse.isOk()) {
+                throw new BusinessException(ErrorCode.OPERATION_ERROR, "获取任务失败");
+            }
+            return JSONUtil.toBean(httpResponse.body(), ImageGenerationResponse.class);
+
         }
     }
 

@@ -2,6 +2,8 @@ package com.zhongyuan.tengpicturebackend.service;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.zhongyuan.tengpicturebackend.api.aliyunai.model.common.CreateTaskResponse;
+import com.zhongyuan.tengpicturebackend.api.aliyunai.model.genPicture.GenPictureRequest;
+import com.zhongyuan.tengpicturebackend.api.aliyunai.model.genPicture.ImageGenerationResponse;
 import com.zhongyuan.tengpicturebackend.api.aliyunai.model.outPainting.GetOutPaintingTaskResponse;
 import com.zhongyuan.tengpicturebackend.model.dto.picture.*;
 import com.zhongyuan.tengpicturebackend.model.entity.Picture;
@@ -43,9 +45,11 @@ public interface PictureService extends IService<Picture> {
 
     void clearPictureFile(Picture picture);
 
-
-
     CreateTaskResponse createPictureOutPaintingTask(CreatePictureOutPaintingTaskRequest createPictureOutPaintingTaskRequest, User loginUser);
+    CreateTaskResponse createGenPictureTask(GenPictureRequest request, User loginUser);
 
-    GetOutPaintingTaskResponse getResult(String taskId);
+    GetOutPaintingTaskResponse getOutPaintingResult(String taskId);
+
+    ImageGenerationResponse getGenerationResult(String taskId);
+
 }
