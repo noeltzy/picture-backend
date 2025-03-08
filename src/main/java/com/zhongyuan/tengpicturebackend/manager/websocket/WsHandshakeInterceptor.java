@@ -55,11 +55,7 @@ public class WsHandshakeInterceptor implements HandshakeInterceptor {
             HttpServletRequest servletRequest = ((ServletServerHttpRequest) request).getServletRequest();
             // 拿到固定的参数 这里是String类型
             String pictureId = servletRequest.getParameter("pictureId");
-            Enumeration<String> parameterNames = servletRequest.getParameterNames();
-            while (parameterNames.hasMoreElements()) {
-                String element = parameterNames.nextElement();
-                System.out.println(element);
-            }
+
 
             if (StrUtil.isBlank(pictureId)) {
                 log.error("缺少图片ID参数拒绝握手");

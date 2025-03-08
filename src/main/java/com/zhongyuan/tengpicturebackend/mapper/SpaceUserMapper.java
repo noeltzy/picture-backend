@@ -15,7 +15,7 @@ import java.util.Map;
 */
 public interface SpaceUserMapper extends BaseMapper<SpaceUser> {
 
-     List <SpaceMemberVo> getSpaceMembers(Long spaceId);
+     List <SpaceMemberVo>     getSpaceMembers(Long spaceId);
 
 }
 

@@ -30,5 +30,8 @@ public class PictureEditResponseMessage {
      */
     private UserVo user;
 
-
+    /**
+     * 如果没有正在编辑的用户，就不用描述了
+     */
+    private UserVo editUser;
 }

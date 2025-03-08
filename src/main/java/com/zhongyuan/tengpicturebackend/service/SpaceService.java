@@ -39,4 +39,10 @@ public interface SpaceService extends IService<Space> {
 
     void checkOwnerOrAdmin(User loginUser, Space oldSpace);
 
+    /**
+     * 查询spaceType
+     * @param id
+     * @return
+     */
+    Integer getSpaceTypeById(Long id);
 }

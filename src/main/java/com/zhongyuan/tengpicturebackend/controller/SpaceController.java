@@ -2,6 +2,7 @@ package com.zhongyuan.tengpicturebackend.controller;
 
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.zhongyuan.tengpicturebackend.annotation.AuthCheck;
 import com.zhongyuan.tengpicturebackend.common.BaseResponse;
@@ -15,6 +16,7 @@ import com.zhongyuan.tengpicturebackend.model.dto.space.SpaceEditRequest;
 import com.zhongyuan.tengpicturebackend.model.dto.space.SpaceQueryRequest;
 import com.zhongyuan.tengpicturebackend.model.dto.space.SpaceUpdateRequest;
 import com.zhongyuan.tengpicturebackend.model.entity.Space;
+import com.zhongyuan.tengpicturebackend.model.entity.SpaceUser;
 import com.zhongyuan.tengpicturebackend.model.entity.User;
 import com.zhongyuan.tengpicturebackend.model.enums.SpaceLevelEnum;
 import com.zhongyuan.tengpicturebackend.model.vo.SpaceLevel;
@@ -22,6 +24,7 @@ import com.zhongyuan.tengpicturebackend.model.vo.SpaceUserVO;
 import com.zhongyuan.tengpicturebackend.model.vo.SpaceVO;
 import com.zhongyuan.tengpicturebackend.model.vo.UserVo;
 import com.zhongyuan.tengpicturebackend.service.SpaceService;
+import com.zhongyuan.tengpicturebackend.service.SpaceUserService;
 import com.zhongyuan.tengpicturebackend.service.UserService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.*;
@@ -42,6 +45,10 @@ public class SpaceController {
 
     @Resource
     UserService userService;
+
+
+    @Resource
+    SpaceUserService spaceUserService;
 
 
     /**
@@ -147,7 +154,15 @@ public class SpaceController {
         ThrowUtils.throwIf(space == null, ErrorCode.NOT_FOUND_ERROR);
         UserVo userVo = UserVo.obj2Vo(userService.getLoginUser(request));
         Long loginUserId = userService.getLoginUser(request).getId();
-        ThrowUtils.throwIf(!loginUserId.equals(space.getUserId()), ErrorCode.NO_AUTH_ERROR);
+        // 如果我是当前空间的成员，我就能访问这个空间
+        LambdaQueryWrapper<SpaceUser> lambdaQueryWrapper = new LambdaQueryWrapper<>();
+        lambdaQueryWrapper.eq(SpaceUser::getSpaceId, space.getId());
+        lambdaQueryWrapper.eq(SpaceUser::getUserId, loginUserId);
+        boolean exists = spaceUserService.exists(lambdaQueryWrapper);
+        // 非空间成员 无法访问
+        boolean owner = space.getUserId().equals(loginUserId);
+
+        ThrowUtils.throwIf(!owner&&!exists, ErrorCode.NO_AUTH_ERROR);
         return ResultUtils.success(SpaceVO.objToVo(space, userVo));
     }
 
@@ -199,5 +214,10 @@ public class SpaceController {
         ThrowUtils.throwIf(!result, ErrorCode.OPERATION_ERROR);
         return ResultUtils.success(true);
     }
-
+    @GetMapping("/type/{id}")
+    public BaseResponse<Integer> getSpaceType(@PathVariable Long id, HttpServletRequest request) {
+        ThrowUtils.throwIf(id==null||id <= 0, ErrorCode.PARAMS_ERROR);
+        Integer spaceType = spaceService.getSpaceTypeById(id);
+        return  ResultUtils.success(spaceType);
+    }
 }

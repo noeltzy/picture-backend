@@ -5,6 +5,7 @@ import cn.hutool.core.bean.BeanUtil;
 import cn.hutool.core.collection.CollUtil;
 import cn.hutool.core.util.StrUtil;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.zhongyuan.tengpicturebackend.exception.BusinessException;
 import com.zhongyuan.tengpicturebackend.exception.ErrorCode;
@@ -188,6 +189,16 @@ public class SpaceServiceImpl extends ServiceImpl<SpaceMapper, Space>
     @Override
     public void checkOwnerOrAdmin(User loginUser, Space space) {
         ThrowUtils.throwIf(!space.getUserId().equals(loginUser.getId()) && !userService.isAdmin(loginUser), ErrorCode.NO_AUTH_ERROR);
+    }
+
+    @Override
+    public Integer getSpaceTypeById(Long id) {
+        LambdaQueryWrapper<Space> queryWrapper = new LambdaQueryWrapper<>();
+        queryWrapper.eq(Space::getId, id);
+        queryWrapper.select(Space::getSpaceType);
+        Space space = this.getBaseMapper().selectOne(queryWrapper);
+        System.out.println(space);
+        return space.getSpaceType();
     }
 }
 

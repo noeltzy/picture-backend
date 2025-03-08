@@ -24,6 +24,7 @@ import com.zhongyuan.tengpicturebackend.model.dto.file.PictureUploadResult;
 import com.zhongyuan.tengpicturebackend.model.dto.picture.*;
 import com.zhongyuan.tengpicturebackend.model.entity.Picture;
 import com.zhongyuan.tengpicturebackend.model.entity.Space;
+import com.zhongyuan.tengpicturebackend.model.entity.SpaceUser;
 import com.zhongyuan.tengpicturebackend.model.entity.User;
 import com.zhongyuan.tengpicturebackend.model.enums.PictureReviewStatusEnum;
 import com.zhongyuan.tengpicturebackend.model.enums.UserRoleEnum;
@@ -31,6 +32,7 @@ import com.zhongyuan.tengpicturebackend.model.vo.PictureVo;
 import com.zhongyuan.tengpicturebackend.model.vo.UserVo;
 import com.zhongyuan.tengpicturebackend.service.PictureService;
 import com.zhongyuan.tengpicturebackend.service.SpaceService;
+import com.zhongyuan.tengpicturebackend.service.SpaceUserService;
 import com.zhongyuan.tengpicturebackend.service.UserService;
 import lombok.extern.slf4j.Slf4j;
 import org.jsoup.Jsoup;
@@ -65,7 +67,8 @@ public class PictureServiceImpl extends ServiceImpl<PictureMapper, Picture>
     SpaceService spaceService;
     @Resource
     UserService userService;
-
+    @Resource
+    SpaceUserService spaceUserService;
     @Resource
     TransactionTemplate transactionTemplate;
     @Resource
@@ -154,8 +157,8 @@ public class PictureServiceImpl extends ServiceImpl<PictureMapper, Picture>
             boolean res = this.saveOrUpdate(picture);
             ThrowUtils.throwIf(!res, ErrorCode.SYSTEM_ERROR, "保存失败");
             //非公共图库更新容量
-            if(finalSpaceId!= null){
-                spaceService.updateVolume(finalSpaceId,picture.getPicSize());
+            if (finalSpaceId != null) {
+                spaceService.updateVolume(finalSpaceId, picture.getPicSize());
             }
             return picture;
         });
@@ -205,14 +208,14 @@ public class PictureServiceImpl extends ServiceImpl<PictureMapper, Picture>
                     .like(Picture::getIntroduction, searchText));
         }
         //查公共图库
-        if(spaceId==null){
+        if (spaceId == null) {
             lambdaQueryWrapper.isNull(Picture::getSpaceId);
-        }else{
+            lambdaQueryWrapper.eq(ObjUtil.isNotEmpty(userId), Picture::getUserId, userId);
+        } else {
             //查私有图库
-            lambdaQueryWrapper.eq(Picture::getSpaceId,spaceId);
+            lambdaQueryWrapper.eq(Picture::getSpaceId, spaceId);
         }
-
-        lambdaQueryWrapper.eq(ObjUtil.isNotEmpty(userId), Picture::getUserId, userId);
+//
         lambdaQueryWrapper.eq(ObjUtil.isNotEmpty(id), Picture::getId, id);
         lambdaQueryWrapper.eq(ObjUtil.isNotEmpty(reviewerId), Picture::getReviewerId, reviewerId);
         lambdaQueryWrapper.eq(ObjUtil.isNotEmpty(picWidth), Picture::getPicWidth, picWidth);
@@ -351,15 +354,22 @@ public class PictureServiceImpl extends ServiceImpl<PictureMapper, Picture>
         Long pictureOwnUserId = picture.getUserId();
         Long currentUserId = loginUser.getId();
 
-        if(spaceId == null){
+        if (spaceId == null) {
             //公共空间，允许操作是本人和管理员
-            if(!Objects.equals(pictureOwnUserId, currentUserId) && !userService.isAdmin(loginUser)){
+            if (!Objects.equals(pictureOwnUserId, currentUserId) && !userService.isAdmin(loginUser)) {
                 throw new BusinessException(ErrorCode.NO_AUTH_ERROR);
             }
-        }else{
+        } else {
+            LambdaQueryWrapper<SpaceUser> lambdaQueryWrapper = new LambdaQueryWrapper<>();
+            lambdaQueryWrapper.eq(SpaceUser::getSpaceId, spaceId);
+            lambdaQueryWrapper.eq(SpaceUser::getUserId, loginUser.getId());
+            boolean exists = spaceUserService.exists(lambdaQueryWrapper);
+
             //私有空间，允许操作是本人
-            if(!Objects.equals(pictureOwnUserId, currentUserId)){
-                throw new BusinessException(ErrorCode.NO_AUTH_ERROR);
+            if (!exists) {
+                if (!Objects.equals(pictureOwnUserId, currentUserId)) {
+                    throw new BusinessException(ErrorCode.NO_AUTH_ERROR);
+                }
             }
         }
     }
@@ -377,10 +387,10 @@ public class PictureServiceImpl extends ServiceImpl<PictureMapper, Picture>
             boolean result = this.removeById(id);
             ThrowUtils.throwIf(!result, ErrorCode.NOT_FOUND_ERROR, "删除图片失败");
             Long spaceId = oldPic.getSpaceId();
-            if(spaceId!= null){
-                spaceService.updateVolume(spaceId,-oldPic.getPicSize());
+            if (spaceId != null) {
+                spaceService.updateVolume(spaceId, -oldPic.getPicSize());
             }
-            return  1;
+            return 1;
         });
     }
 
@@ -391,13 +401,13 @@ public class PictureServiceImpl extends ServiceImpl<PictureMapper, Picture>
         String url = picture.getUrl();
         Long count = this.lambdaQuery().eq(Picture::getUrl, url).count();
         // 如果只有一条记录用可以删除，超过一条说明有其他记录使用则不适用
-        if(count==null||count>1){
+        if (count == null || count > 1) {
             return;
         }
         String key = this.url2Key(url);
         //清理原图
         String originKey = String.format("%s.%s", FileUtil.mainName(key), picture.getPicFormat().toLowerCase());
-        String thumbnailKey= this.url2Key(picture.getThumbnailUrl());
+        String thumbnailKey = this.url2Key(picture.getThumbnailUrl());
         //执行清理
         cosManager.deleteObject(key);
         cosManager.deleteObject(originKey);
@@ -424,17 +434,18 @@ public class PictureServiceImpl extends ServiceImpl<PictureMapper, Picture>
 
     @Override
     public GetOutPaintingTaskResponse getResult(String taskId) {
-        return  aliYunApiService.getOutPaintingTask(taskId);
+        return aliYunApiService.getOutPaintingTask(taskId);
     }
 
 
     /**
      * url转换成key
+     *
      * @param url 图片url
      * @return key string
      */
     private String url2Key(String url) {
-        return url.replaceFirst(cosConfig.getHost(),"");
+        return url.replaceFirst(cosConfig.getHost(), "");
     }
 }
 
