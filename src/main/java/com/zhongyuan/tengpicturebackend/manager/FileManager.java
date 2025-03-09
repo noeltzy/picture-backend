@@ -10,6 +10,7 @@ import com.zhongyuan.tengpicturebackend.config.CosConfig;
 import com.zhongyuan.tengpicturebackend.exception.BusinessException;
 import com.zhongyuan.tengpicturebackend.exception.ErrorCode;
 import com.zhongyuan.tengpicturebackend.exception.ThrowUtils;
+import com.zhongyuan.tengpicturebackend.manager.cos.CosManager;
 import com.zhongyuan.tengpicturebackend.model.dto.file.PictureUploadResult;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;

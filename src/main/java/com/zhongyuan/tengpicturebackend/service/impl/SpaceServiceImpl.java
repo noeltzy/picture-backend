@@ -1,12 +1,12 @@
 package com.zhongyuan.tengpicturebackend.service.impl;
-import java.util.Date;
 
 import cn.hutool.core.bean.BeanUtil;
 import cn.hutool.core.collection.CollUtil;
+import cn.hutool.core.util.ObjUtil;
 import cn.hutool.core.util.StrUtil;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
-import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+import com.zhongyuan.tengpicturebackend.common.ResultUtils;
 import com.zhongyuan.tengpicturebackend.exception.BusinessException;
 import com.zhongyuan.tengpicturebackend.exception.ErrorCode;
 import com.zhongyuan.tengpicturebackend.exception.ThrowUtils;
@@ -24,6 +24,7 @@ import com.zhongyuan.tengpicturebackend.model.vo.UserVo;
 import com.zhongyuan.tengpicturebackend.service.SpaceService;
 import com.zhongyuan.tengpicturebackend.service.SpaceUserService;
 import com.zhongyuan.tengpicturebackend.service.UserService;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.support.TransactionTemplate;
 
@@ -53,6 +54,9 @@ public class SpaceServiceImpl extends ServiceImpl<SpaceMapper, Space>
 
     @Resource
     TransactionTemplate transactionTemplate;
+    @Autowired
+    private SpaceService spaceService;
+
     @Override
     public void validSpace(Space space, boolean add) {
         ThrowUtils.throwIf(space == null, ErrorCode.PARAMS_ERROR);
@@ -112,7 +116,8 @@ public class SpaceServiceImpl extends ServiceImpl<SpaceMapper, Space>
     }
 
     @Override
-    public long addSpace(SpaceAddRequest spaceAddRequest, User loginUser) {
+    public long addSpace(SpaceAddRequest spaceAddRequest, HttpServletRequest request) {
+        User loginUser = userService.getLoginUser(request);
         Space space = new Space();
         BeanUtil.copyProperties(spaceAddRequest, space);
         //填写默认参数
@@ -199,6 +204,52 @@ public class SpaceServiceImpl extends ServiceImpl<SpaceMapper, Space>
         Space space = this.getBaseMapper().selectOne(queryWrapper);
         System.out.println(space);
         return space.getSpaceType();
+    }
+
+    @Override
+    public void checkSpaceOptionAuth(Long spaceId, User loginUser, SpaceRoleEnum requestRole) {
+        // TODO 私人/团队空间的判断逻辑主要是依据空间 包括空间操作也完全可以复用
+        Space space = this.getById(spaceId);
+        checkSpaceOptionAuth(space, loginUser, requestRole);
+        
+    }
+
+    @Override
+    public void checkSpaceOptionAuth(Space space, User loginUser, SpaceRoleEnum requestRole) {
+
+        Long spaceId = space.getId();
+        LambdaQueryWrapper<SpaceUser> lambdaQueryWrapper = new LambdaQueryWrapper<>();
+        lambdaQueryWrapper.eq(SpaceUser::getSpaceId, spaceId);
+        lambdaQueryWrapper.eq(SpaceUser::getUserId, loginUser.getId());
+        SpaceUser spaceUser = spaceUserService.getOne(lambdaQueryWrapper);
+        //空间这部分逻辑可以封装到SpaceService
+
+        ThrowUtils.throwIf(ObjUtil.isNull(space), ErrorCode.NOT_FOUND_ERROR);
+
+        SpaceRoleEnum nowRole=null;
+        if(ObjUtil.isNotNull(spaceUser)){
+            nowRole = SpaceRoleEnum.getEnumByValue(spaceUser.getSpaceRole());
+
+        }
+        if(space.getUserId().equals(loginUser.getId())){
+            nowRole =SpaceRoleEnum.ADMIN;
+        }
+
+        boolean hasPermission  = SpaceRoleEnum.haveRole(requestRole, nowRole);
+        ThrowUtils.throwIf(!hasPermission, ErrorCode.PARAMS_ERROR,"团队空间,您无权力");
+    }
+
+    @Override
+    public SpaceVO getSpaceVoById(long id, HttpServletRequest request) {
+
+        Space space = this.lambdaQuery().eq(Space::getId, id).one();
+        ThrowUtils.throwIf(space == null, ErrorCode.NOT_FOUND_ERROR);
+
+        User loginUser =userService.getLoginUser(request);
+
+        spaceService.checkSpaceOptionAuth(space, loginUser, SpaceRoleEnum.VIEWER);
+
+        return  SpaceVO.objToVo(space, UserVo.obj2Vo(loginUser));
     }
 }
 

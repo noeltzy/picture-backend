@@ -8,6 +8,7 @@
         <id property="id" column="id"/>
         <result property="url" column="url"/>
         <result property="thumbnailUrl" column="thumbnailUrl"/>
+        <result property="originUrl" column="originUrl"/>
         <result property="name" column="name"/>
         <result property="introduction" column="introduction"/>
         <result property="category" column="category"/>
@@ -33,6 +34,6 @@
         ,url,name,introduction,category,tags,
         picSize,picWidth,picHeight,picScale,picFormat,thumbnailUrl,
         userId,spaceId,createTime,editTime,updateTime,isDelete,
-                reviewStatus,reviewMessage,reviewerId,reviewTime
+                reviewStatus,reviewMessage,reviewerId,reviewTime,originUrl
     </sql>
 </mapper>

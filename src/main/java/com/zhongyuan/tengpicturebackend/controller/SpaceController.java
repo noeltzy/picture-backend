@@ -2,7 +2,6 @@ package com.zhongyuan.tengpicturebackend.controller;
 
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
-import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.zhongyuan.tengpicturebackend.annotation.AuthCheck;
 import com.zhongyuan.tengpicturebackend.common.BaseResponse;
@@ -20,7 +19,6 @@ import com.zhongyuan.tengpicturebackend.model.entity.SpaceUser;
 import com.zhongyuan.tengpicturebackend.model.entity.User;
 import com.zhongyuan.tengpicturebackend.model.enums.SpaceLevelEnum;
 import com.zhongyuan.tengpicturebackend.model.vo.SpaceLevel;
-import com.zhongyuan.tengpicturebackend.model.vo.SpaceUserVO;
 import com.zhongyuan.tengpicturebackend.model.vo.SpaceVO;
 import com.zhongyuan.tengpicturebackend.model.vo.UserVo;
 import com.zhongyuan.tengpicturebackend.service.SpaceService;
@@ -63,7 +61,7 @@ public class SpaceController {
     public BaseResponse<Boolean> updateSpace(@RequestBody SpaceUpdateRequest spaceUpdateRequest, HttpServletRequest request) {
         ThrowUtils.throwIf(spaceUpdateRequest == null, ErrorCode.PARAMS_ERROR);
         Space space = spaceUpdateRequest.toObj();
-        spaceService.validSpace(space,false);
+        spaceService.validSpace(space, false);
         Long picId = space.getId();
         // 必须存在
         Space oldPic = spaceService.getById(picId);
@@ -75,6 +73,7 @@ public class SpaceController {
         ThrowUtils.throwIf(!result, ErrorCode.OPERATION_ERROR);
         return ResultUtils.success(true);
     }
+
     /**
      * 根据id获取对象 (admin)
      *
@@ -104,6 +103,7 @@ public class SpaceController {
 
     // 删除空间
     @PostMapping("/delete")
+    @AuthCheck(mustRole = UserConstant.ADMIN_ROLE)
     public BaseResponse<Boolean> deleteSpace(@RequestBody IdRequest idRequest, HttpServletRequest request) {
         ThrowUtils.throwIf(idRequest == null || idRequest.getId() <= 0, ErrorCode.PARAMS_ERROR);
         // 必须存在
@@ -119,14 +119,24 @@ public class SpaceController {
         return ResultUtils.success(true);
     }
 
+    /**
+     * 特殊校验逻辑 通常用户无法查询 无需权限
+     * @param spaceAddRequest
+     * @param request
+     * @return
+     */
     @PostMapping("/add")
     public BaseResponse<Long> addSpace(@RequestBody SpaceAddRequest spaceAddRequest, HttpServletRequest request) {
         ThrowUtils.throwIf(spaceAddRequest == null, ErrorCode.PARAMS_ERROR);
-        User loginUser = userService.getLoginUser(request);
-        long l = spaceService.addSpace(spaceAddRequest, loginUser);
+
+        long l = spaceService.addSpace(spaceAddRequest, request);
         return ResultUtils.success(l);
     }
 
+    /**
+     * 通用查询 无需权限
+     * @return
+     */
     @GetMapping("/list/level")
     public BaseResponse<List<SpaceLevel>> listSpaceLevel() {
         List<SpaceLevel> spaceLevelList = Arrays.stream(SpaceLevelEnum.values()) // 获取所有枚举
@@ -142,7 +152,7 @@ public class SpaceController {
 
     /**
      * 获取Vo
-     *
+     * check
      * @param id      空间id
      * @param request 请求
      * @return 空间vo
@@ -150,27 +160,16 @@ public class SpaceController {
     @GetMapping("/get/vo")
     public BaseResponse<SpaceVO> getSpaceVoById(long id, HttpServletRequest request) {
         ThrowUtils.throwIf(id <= 0, ErrorCode.PARAMS_ERROR);
-        Space space = spaceService.lambdaQuery().eq(Space::getId, id).one();
-        ThrowUtils.throwIf(space == null, ErrorCode.NOT_FOUND_ERROR);
-        UserVo userVo = UserVo.obj2Vo(userService.getLoginUser(request));
-        Long loginUserId = userService.getLoginUser(request).getId();
-        // 如果我是当前空间的成员，我就能访问这个空间
-        LambdaQueryWrapper<SpaceUser> lambdaQueryWrapper = new LambdaQueryWrapper<>();
-        lambdaQueryWrapper.eq(SpaceUser::getSpaceId, space.getId());
-        lambdaQueryWrapper.eq(SpaceUser::getUserId, loginUserId);
-        boolean exists = spaceUserService.exists(lambdaQueryWrapper);
-        // 非空间成员 无法访问
-        boolean owner = space.getUserId().equals(loginUserId);
+        SpaceVO spaceVO =spaceService.getSpaceVoById(id,request);
+        return  ResultUtils.success(spaceVO);
 
-        ThrowUtils.throwIf(!owner&&!exists, ErrorCode.NO_AUTH_ERROR);
-        return ResultUtils.success(SpaceVO.objToVo(space, userVo));
     }
 
     /**
      * 分页查询空间VO
-     *
+     * 无需权限校验
      * @param spaceQueryRequest 查询请求
-     * @param request             请求
+     * @param request           请求
      * @return 空间vo分页
      */
     @PostMapping("/list/page/vo")
@@ -180,7 +179,6 @@ public class SpaceController {
         int size = spaceQueryRequest.getPageSize();
         // 限制爬虫
         ThrowUtils.throwIf(current < 0 || size > 20, ErrorCode.PARAMS_ERROR);
-        //设置查询条件一定是审核完毕的
         LambdaQueryWrapper<Space> queryWrapper = spaceService.getQueryWrapper(spaceQueryRequest);
 
         Page<Space> page = spaceService.page(new Page<>(current, size), queryWrapper);
@@ -190,10 +188,10 @@ public class SpaceController {
     }
 
     /**
-     * 编辑空间
+     * 编辑空间 前端未实现空间相关编辑操作
      *
      * @param spaceEditRequest 编辑空间参数
-     * @param request            请求
+     * @param request          请求
      * @return 结果
      */
     @PostMapping("/edit")
@@ -201,7 +199,7 @@ public class SpaceController {
         ThrowUtils.throwIf(spaceEditRequest == null, ErrorCode.PARAMS_ERROR);
         Space space = spaceEditRequest.toObj();
         space.setEditTime(new Date());
-        spaceService.validSpace(space,false);
+        spaceService.validSpace(space, false);
         Long picId = space.getId();
         // 必须存在
         Space oldSpace = spaceService.getById(picId);
@@ -214,10 +212,11 @@ public class SpaceController {
         ThrowUtils.throwIf(!result, ErrorCode.OPERATION_ERROR);
         return ResultUtils.success(true);
     }
+
     @GetMapping("/type/{id}")
     public BaseResponse<Integer> getSpaceType(@PathVariable Long id, HttpServletRequest request) {
-        ThrowUtils.throwIf(id==null||id <= 0, ErrorCode.PARAMS_ERROR);
+        ThrowUtils.throwIf(id == null || id <= 0, ErrorCode.PARAMS_ERROR);
         Integer spaceType = spaceService.getSpaceTypeById(id);
-        return  ResultUtils.success(spaceType);
+        return ResultUtils.success(spaceType);
     }
 }

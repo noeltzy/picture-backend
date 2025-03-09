@@ -1,5 +1,6 @@
 package com.zhongyuan.tengpicturebackend.model.vo;
 
+import cn.hutool.core.collection.CollUtil;
 import cn.hutool.json.JSONUtil;
 import com.baomidou.mybatisplus.annotation.IdType;
 import com.baomidou.mybatisplus.annotation.TableId;
@@ -8,8 +9,10 @@ import lombok.Data;
 import org.springframework.beans.BeanUtils;
 
 import java.io.Serializable;
+import java.util.Collections;
 import java.util.Date;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Data
 public class PictureVo implements Serializable {
@@ -113,12 +116,20 @@ public class PictureVo implements Serializable {
         BeanUtils.copyProperties(picture, pictureVo);
         // 名字字段不同
         pictureVo.setPicName(picture.getName());
+        pictureVo.setUserId(picture.getUserId());
         if(userVo!=null){
             pictureVo.setUserVo(userVo);
             pictureVo.setUserId(userVo.getId());
         }
         pictureVo.setTags(JSONUtil.toList(picture.getTags(), String.class));
         return pictureVo;
+    }
+
+    public static List<PictureVo> toVoList(List<Picture> records) {
+        if (CollUtil.isEmpty(records)) {
+            return Collections.emptyList();
+        }
+        return records.stream().map(picture -> PictureVo.obj2Vo(picture, null)).collect(Collectors.toList());
     }
 
 }

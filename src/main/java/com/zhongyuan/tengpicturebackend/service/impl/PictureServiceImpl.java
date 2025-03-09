@@ -6,6 +6,7 @@ import cn.hutool.core.io.FileUtil;
 import cn.hutool.core.util.ObjUtil;
 import cn.hutool.core.util.StrUtil;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.zhongyuan.tengpicturebackend.api.aliyunai.model.genPicture.GenPictureRequest;
 import com.zhongyuan.tengpicturebackend.api.aliyunai.model.genPicture.ImageGenerationResponse;
@@ -17,10 +18,10 @@ import com.zhongyuan.tengpicturebackend.config.CosConfig;
 import com.zhongyuan.tengpicturebackend.exception.BusinessException;
 import com.zhongyuan.tengpicturebackend.exception.ErrorCode;
 import com.zhongyuan.tengpicturebackend.exception.ThrowUtils;
-import com.zhongyuan.tengpicturebackend.manager.CosManager;
-import com.zhongyuan.tengpicturebackend.manager.upload.FilePictureUpload;
-import com.zhongyuan.tengpicturebackend.manager.upload.PictureUploadTemplate;
-import com.zhongyuan.tengpicturebackend.manager.upload.UrlPictureUpload;
+import com.zhongyuan.tengpicturebackend.manager.cos.CosManager;
+import com.zhongyuan.tengpicturebackend.manager.cos.upload.FilePictureUpload;
+import com.zhongyuan.tengpicturebackend.manager.cos.upload.PictureUploadTemplate;
+import com.zhongyuan.tengpicturebackend.manager.cos.upload.UrlPictureUpload;
 import com.zhongyuan.tengpicturebackend.mapper.PictureMapper;
 import com.zhongyuan.tengpicturebackend.model.dto.file.PictureUploadResult;
 import com.zhongyuan.tengpicturebackend.model.dto.picture.*;
@@ -29,6 +30,7 @@ import com.zhongyuan.tengpicturebackend.model.entity.Space;
 import com.zhongyuan.tengpicturebackend.model.entity.SpaceUser;
 import com.zhongyuan.tengpicturebackend.model.entity.User;
 import com.zhongyuan.tengpicturebackend.model.enums.PictureReviewStatusEnum;
+import com.zhongyuan.tengpicturebackend.model.enums.SpaceRoleEnum;
 import com.zhongyuan.tengpicturebackend.model.enums.UserRoleEnum;
 import com.zhongyuan.tengpicturebackend.model.vo.PictureVo;
 import com.zhongyuan.tengpicturebackend.model.vo.UserVo;
@@ -48,8 +50,8 @@ import org.springframework.transaction.support.TransactionTemplate;
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
 import java.io.IOException;
+import java.net.MalformedURLException;
 import java.util.*;
-import java.util.stream.Collectors;
 
 /**
  * @author Windows11
@@ -234,18 +236,6 @@ public class PictureServiceImpl extends ServiceImpl<PictureMapper, Picture>
         return lambdaQueryWrapper;
     }
 
-    @Override
-    public List<PictureVo> toVoList(List<Picture> records, HttpServletRequest request) {
-        if (CollUtil.isEmpty(records)) {
-            return Collections.emptyList();
-        }
-        Set<Long> userIds = records.stream().map(Picture::getUserId).collect(Collectors.toSet());
-        List<User> users = userService.listByIds(userIds);
-        Map<Long, UserVo> userMap = users.stream().collect(Collectors.toMap(User::getId, UserVo::obj2Vo));
-        return records.stream().map(
-                picture -> PictureVo.obj2Vo(picture, userMap.get(picture.getUserId())
-                )).collect(Collectors.toList());
-    }
 
     @Override
     public void reviewPicture(PictureReviewRequest pictureReviewRequest, User user) {
@@ -296,7 +286,7 @@ public class PictureServiceImpl extends ServiceImpl<PictureMapper, Picture>
         }
 
         Integer count = pictureUploadByBatchRequest.getCount();
-        ThrowUtils.throwIf(count == null || count > 30, ErrorCode.PARAMS_ERROR, "抓取数量过多");
+        ThrowUtils.throwIf(ObjUtil.isNull(count) || count > 30, ErrorCode.PARAMS_ERROR, "抓取数量过多");
         // 拼接搜索引擎URL
         String fetchUrl = String.format("https://cn.bing.com/images/async?q=%s&mmasync=1", searchText);
         // 爬虫抓取图片网页
@@ -350,40 +340,16 @@ public class PictureServiceImpl extends ServiceImpl<PictureMapper, Picture>
         return uploadCount;
     }
 
-    @Override
-    public void checkPictureOptionAuth(Picture picture, User loginUser) {
-        Long spaceId = picture.getSpaceId();
-        Long pictureOwnUserId = picture.getUserId();
-        Long currentUserId = loginUser.getId();
-
-        if (spaceId == null) {
-            //公共空间，允许操作是本人和管理员
-            if (!Objects.equals(pictureOwnUserId, currentUserId) && !userService.isAdmin(loginUser)) {
-                throw new BusinessException(ErrorCode.NO_AUTH_ERROR);
-            }
-        } else {
-            LambdaQueryWrapper<SpaceUser> lambdaQueryWrapper = new LambdaQueryWrapper<>();
-            lambdaQueryWrapper.eq(SpaceUser::getSpaceId, spaceId);
-            lambdaQueryWrapper.eq(SpaceUser::getUserId, loginUser.getId());
-            boolean exists = spaceUserService.exists(lambdaQueryWrapper);
-
-            //私有空间，允许操作是本人
-            if (!exists) {
-                if (!Objects.equals(pictureOwnUserId, currentUserId)) {
-                    throw new BusinessException(ErrorCode.NO_AUTH_ERROR);
-                }
-            }
-        }
-    }
 
     // TODO 实际空间释放未完成
     @Override
     public void deletePicture(Long id, User loginUser) {
 
+        // 查询是否存在
         Picture oldPic = this.getById(id);
-        ThrowUtils.throwIf(oldPic == null, ErrorCode.NOT_FOUND_ERROR, "图片不存在");
+        ThrowUtils.throwIf(ObjUtil.isNull(oldPic), ErrorCode.NOT_FOUND_ERROR, "图片不存在");
         // 本人或者管理员
-        this.checkPictureOptionAuth(oldPic, loginUser);
+        this.checkPictureOptionAuth(oldPic, loginUser, SpaceRoleEnum.ADMIN);
         // 数据库删除
         transactionTemplate.execute(status -> {
             boolean result = this.removeById(id);
@@ -446,7 +412,83 @@ public class PictureServiceImpl extends ServiceImpl<PictureMapper, Picture>
         return aliYunApiService.getGenPictureTaskResult(taskId);
     }
 
+    @Override
+    public PictureVo getPictureVoById(long id, HttpServletRequest request) {
+        // 必须存在且审核通过 || 公共空间必须是审核通过的图片
+        Picture picture = this.lambdaQuery().eq(Picture::getId, id).one();
+        ThrowUtils.throwIf(ObjUtil.isNull(picture), ErrorCode.NOT_FOUND_ERROR,"非发现资源");
 
+        // 公共空间 查询的结果一定是需要审核通过的
+        if(ObjUtil.isNull(picture.getSpaceId())){
+            PictureReviewStatusEnum reviewStatus = PictureReviewStatusEnum.getEnumByValue(picture.getReviewStatus());
+            ThrowUtils.throwIf(!PictureReviewStatusEnum.PASS.equals(reviewStatus), ErrorCode.NOT_FOUND_ERROR);
+        }
+
+        // 统一的权限校验
+        User loginUser = userService.getLoginUser(request);
+        this.checkPictureOptionAuth(picture, loginUser,SpaceRoleEnum.VIEWER);
+
+        // 构建返回
+        User pictureUser = userService.getById(picture.getUserId());
+        UserVo pictureUserVo = UserVo.obj2Vo(pictureUser);
+        return PictureVo.obj2Vo(picture,pictureUserVo);
+    }
+
+    @Override
+    public Page<PictureVo> listPictureVoPage(PictureQueryRequest pictureQueryRequest, HttpServletRequest request) {
+        // 构建查询请求
+        Long spaceId = pictureQueryRequest.getSpaceId();
+        User loginUser = userService.getLoginUser(request);
+        Picture picture =new Picture();
+        BeanUtil.copyProperties(pictureQueryRequest,picture);
+        // 如果有空间Id 查询就不需要审核完毕
+        if(spaceId==null){
+            pictureQueryRequest.setReviewStatus(PictureReviewStatusEnum.PASS.getValue());
+
+        }
+        // 根据统一的查询请求校验参数
+        this.checkPictureOptionAuth(picture, loginUser,SpaceRoleEnum.VIEWER);
+
+        // 查询结果并封装返回
+        int current = pictureQueryRequest.getCurrent();
+        int size = pictureQueryRequest.getPageSize();
+        LambdaQueryWrapper<Picture> queryWrapper = this.getQueryWrapper(pictureQueryRequest);
+        Page<Picture> page = this.page(new Page<>(current, size), queryWrapper);
+        Page<PictureVo> pictureVoPage = new Page<>(current, size, page.getTotal());
+        // 查list的时候返回id即可
+        pictureVoPage.setRecords(PictureVo.toVoList(page.getRecords()));
+        return pictureVoPage;
+    }
+
+    @Override
+    public boolean editPicture(PictureEditRequest pictureEditRequest, HttpServletRequest request) {
+        Picture picture = pictureEditRequest.toObj();
+        picture.setEditTime(new Date());
+        // 复杂的参数校验也交由 service层处理
+        this.validPicture(picture);
+        Long picId = picture.getId();
+        // 必须存在
+        Picture oldPic = this.getById(picId);
+        ThrowUtils.throwIf(ObjUtil.isNull(oldPic), ErrorCode.NOT_FOUND_ERROR, "图片不存在");
+        // 本人或者管理员
+        User loginUser = userService.getLoginUser(request);
+        this.checkPictureOptionAuth(oldPic,loginUser,SpaceRoleEnum.EDITOR);
+        // 数据库操作
+        this.setReviewParam(picture, loginUser);
+
+        return this.updateById(picture);
+    }
+
+    @Override
+    public String downloadPicture(Long id, HttpServletRequest request) throws MalformedURLException {
+
+        Picture picture = this.getById(id);
+        User loginUser = userService.getLoginUser(request);
+
+        //TODO VIP拥有其他额外权力,暂时不添加
+        this.checkPictureOptionAuth(picture,loginUser,SpaceRoleEnum.VIEWER);
+        return picture.getOriginUrl()==null?picture.getUrl():picture.getOriginUrl();
+    }
     /**
      * url转换成key
      *
@@ -455,6 +497,27 @@ public class PictureServiceImpl extends ServiceImpl<PictureMapper, Picture>
      */
     private String url2Key(String url) {
         return url.replaceFirst(cosConfig.getHost(), "");
+    }
+
+    @Override
+    public void checkPictureOptionAuth(Picture picture, User loginUser, SpaceRoleEnum requestRole) {
+        Long spaceId = picture.getSpaceId();
+        Long pictureOwnUserId = picture.getUserId();
+        Long currentUserId = loginUser.getId();
+
+        // 公共图片的判断逻辑主要是图片的所有权来进行判断
+        if (spaceId == null) {
+            // 公共空间 任何人都可以执行读操作 哪怕是批量查询
+            if(SpaceRoleEnum.VIEWER.equals(requestRole)) {
+                return;
+            }
+            //公共空间，允许其他操作只准许是本人和管理员
+            if (!Objects.equals(pictureOwnUserId, currentUserId) && !userService.isAdmin(loginUser)) {
+                throw new BusinessException(ErrorCode.NO_AUTH_ERROR,"公共空间，允许操作是本人和管理员");
+            }
+        } else {
+            spaceService.checkSpaceOptionAuth(spaceId,loginUser, requestRole);
+        }
     }
 }
 

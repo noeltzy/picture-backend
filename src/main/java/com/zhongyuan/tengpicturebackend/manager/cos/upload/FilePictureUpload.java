@@ -1,4 +1,4 @@
-package com.zhongyuan.tengpicturebackend.manager.upload;
+package com.zhongyuan.tengpicturebackend.manager.cos.upload;
 
 import cn.hutool.core.io.FileUtil;
 import com.zhongyuan.tengpicturebackend.exception.ErrorCode;

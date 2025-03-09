@@ -2,21 +2,17 @@ package com.zhongyuan.tengpicturebackend.controller;
 
 
 import cn.hutool.core.bean.BeanUtil;
+import cn.hutool.core.util.ObjUtil;
 import cn.hutool.core.util.RandomUtil;
-import cn.hutool.core.util.StrUtil;
 import cn.hutool.json.JSONUtil;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.zhongyuan.tengpicturebackend.annotation.AuthCheck;
-import com.zhongyuan.tengpicturebackend.api.aliyunai.model.common.CreateTaskResponse;
-import com.zhongyuan.tengpicturebackend.api.aliyunai.model.genPicture.GenPictureRequest;
-import com.zhongyuan.tengpicturebackend.api.aliyunai.model.outPainting.GetOutPaintingTaskResponse;
 import com.zhongyuan.tengpicturebackend.common.BaseResponse;
 import com.zhongyuan.tengpicturebackend.common.IdRequest;
 import com.zhongyuan.tengpicturebackend.common.ResultUtils;
 import com.zhongyuan.tengpicturebackend.constant.RedisConstant;
 import com.zhongyuan.tengpicturebackend.constant.UserConstant;
-import com.zhongyuan.tengpicturebackend.exception.BusinessException;
 import com.zhongyuan.tengpicturebackend.exception.ErrorCode;
 import com.zhongyuan.tengpicturebackend.exception.ThrowUtils;
 import com.zhongyuan.tengpicturebackend.model.dto.picture.*;
@@ -32,15 +28,21 @@ import com.zhongyuan.tengpicturebackend.service.SpaceService;
 import com.zhongyuan.tengpicturebackend.service.UserService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.io.UrlResource;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.data.redis.core.ValueOperations;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.util.DigestUtils;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
+import java.net.MalformedURLException;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
@@ -184,10 +186,9 @@ public class PictureController {
         pictureService.deletePicture(idRequest.getId(), loginUser);
         return ResultUtils.success(true);
     }
-
     /**
      * 获取Vo
-     *
+     * 权限 check
      * @param id      图片id
      * @param request 请求
      * @return 图片vo
@@ -195,57 +196,37 @@ public class PictureController {
     @GetMapping("/get/vo")
     public BaseResponse<PictureVo> getPictureVoById(long id, HttpServletRequest request) {
         ThrowUtils.throwIf(id <= 0, ErrorCode.PARAMS_ERROR);
-        // 必须存在且审核通过
-        Picture picture = pictureService.lambdaQuery().eq(Picture::getId, id).one();
-        ThrowUtils.throwIf(picture == null, ErrorCode.NOT_FOUND_ERROR);
-        // 公共图库或者本人图库
-        if(picture.getSpaceId()!=null){
-            User loginUser = userService.getLoginUser(request);
-            pictureService.checkPictureOptionAuth(picture, loginUser);
-        }
-
-        UserVo userVo = UserVo.obj2Vo(userService.getLoginUser(request));
-        return ResultUtils.success(PictureVo.obj2Vo(picture, userVo));
+        PictureVo pictureVo =pictureService.getPictureVoById(id, request);
+        return ResultUtils.success(pictureVo);
     }
 
     /**
      * 分页查询图片VO
-     *
+     * 权限 check
      * @param pictureQueryRequest 查询请求
      * @param request             请求
      * @return 图片vo分页
+     * TODO 公共空间图库可以设置走缓存，私有or团队的并发并不高，不用走缓存
      */
     @PostMapping("/list/page/vo")
     public BaseResponse<Page<PictureVo>> listPictureVoPage(@RequestBody PictureQueryRequest pictureQueryRequest, HttpServletRequest request) {
+        // 参数校验
         ThrowUtils.throwIf(pictureQueryRequest == null, ErrorCode.PARAMS_ERROR);
         int current = pictureQueryRequest.getCurrent();
         int size = pictureQueryRequest.getPageSize();
         // 限制爬虫
         ThrowUtils.throwIf(current < 0 || size > 20, ErrorCode.PARAMS_ERROR);
-        //设置查询条件一定是审核完毕的
-        Long spaceId = pictureQueryRequest.getSpaceId();
-        if(spaceId!=null){
-            User loginUser = userService.getLoginUser(request);
-            boolean exists = spaceService.lambdaQuery().eq(Space::getId, spaceId).exists();
-            ThrowUtils.throwIf(!exists, ErrorCode.NOT_FOUND_ERROR,"空间不存在");
-            Picture picture =new Picture();
-            BeanUtil.copyProperties(pictureQueryRequest,picture);
-            pictureService.checkPictureOptionAuth(picture, loginUser);
-        }
-        // 如果有空间Id 查询就不需要审核完毕
-        if(spaceId==null){
-            pictureQueryRequest.setReviewStatus(PictureReviewStatusEnum.PASS.getValue());
 
-        }
-        LambdaQueryWrapper<Picture> queryWrapper = pictureService.getQueryWrapper(pictureQueryRequest);
-        Page<Picture> page = pictureService.page(new Page<>(current, size), queryWrapper);
-        Page<PictureVo> pictureVoPage = new Page<>(current, size, page.getTotal());
-        pictureVoPage.setRecords(pictureService.toVoList(page.getRecords(), request));
-        return ResultUtils.success(pictureVoPage);
+        //service调用返回结果
+        Page<PictureVo> result=pictureService.listPictureVoPage( pictureQueryRequest,  request);
+
+        return ResultUtils.success(result);
     }
+
+
     /**
      * 分页查询图片VO 有缓存
-     *
+     * TODO 暂时留着 后续fix
      * @param pictureQueryRequest 查询请求
      * @param request             请求
      * @return 图片vo分页
@@ -274,7 +255,7 @@ public class PictureController {
         LambdaQueryWrapper<Picture> queryWrapper = pictureService.getQueryWrapper(pictureQueryRequest);
         Page<Picture> page = pictureService.page(new Page<>(current, size), queryWrapper);
         Page<PictureVo> pictureVoPage = new Page<>(current, size, page.getTotal());
-        pictureVoPage.setRecords(pictureService.toVoList(page.getRecords(), request));
+        pictureVoPage.setRecords(PictureVo.toVoList(page.getRecords()));
         //缓存
         String catchValue = JSONUtil.toJsonStr(pictureVoPage);
         //! 设置随机缓存过期时间防止缓存雪崩 随机5-10分钟
@@ -293,23 +274,16 @@ public class PictureController {
      */
     @PostMapping("/edit")
     public BaseResponse<Boolean> editePicture(@RequestBody PictureEditRequest pictureEditRequest, HttpServletRequest request) {
+
         ThrowUtils.throwIf(pictureEditRequest == null, ErrorCode.PARAMS_ERROR);
-        Picture picture = pictureEditRequest.toObj();
-        picture.setEditTime(new Date());
-        pictureService.validPicture(picture);
-        Long picId = picture.getId();
-        // 必须存在
-        Picture oldPic = pictureService.getById(picId);
-        ThrowUtils.throwIf(oldPic == null, ErrorCode.NOT_FOUND_ERROR, "图片不存在");
-        // 本人或者管理员
-        User loginUser = userService.getLoginUser(request);
-        pictureService.checkPictureOptionAuth(oldPic,loginUser);
-        // 数据库操作
-        pictureService.setReviewParam(picture, loginUser);
-        boolean result = pictureService.updateById(picture);
+
+        boolean result = pictureService.editPicture(pictureEditRequest,request);
+
         ThrowUtils.throwIf(!result, ErrorCode.OPERATION_ERROR);
+
         return ResultUtils.success(true);
     }
+
 
     @GetMapping("/tag_category")
     public BaseResponse<PictureTagCategory> getTagCategory() {
@@ -321,4 +295,10 @@ public class PictureController {
         return ResultUtils.success(pictureTagCategory);
     }
 
+    @GetMapping("/download")
+    public BaseResponse<String> downloadImage(@RequestParam Long id,HttpServletRequest request) throws MalformedURLException {
+        // 通过 URL 读取远程图片
+        ThrowUtils.throwIf(ObjUtil.isNull(id), ErrorCode.PARAMS_ERROR,"参数错误");
+        return ResultUtils.success(pictureService.downloadPicture(id,request));
+    }
 }

@@ -1,17 +1,24 @@
-package com.zhongyuan.tengpicturebackend.manager;
+package com.zhongyuan.tengpicturebackend.manager.cos;
 
 import cn.hutool.core.io.FileUtil;
-import cn.hutool.db.PageResult;
 import com.qcloud.cos.COSClient;
 import com.qcloud.cos.model.PutObjectRequest;
 import com.qcloud.cos.model.PutObjectResult;
 import com.qcloud.cos.model.ciModel.persistence.PicOperations;
 import com.zhongyuan.tengpicturebackend.config.CosConfig;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.core.io.UrlResource;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 
 import javax.annotation.Resource;
 import java.io.File;
+import java.net.MalformedURLException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -57,6 +64,7 @@ public class CosManager {
         PutObjectRequest putObjectRequest = new PutObjectRequest(cosConfig.getBucket(), key, file);
         PicOperations picOperations = new PicOperations();
         // 返回原图信息
+        System.out.println(key);
         picOperations.setIsPicInfo(1);
         // 构造压缩规则
         List<PicOperations.Rule> rules = new ArrayList<>();
@@ -82,5 +90,18 @@ public class CosManager {
         picOperations.setRules(rules);
         putObjectRequest.setPicOperations(picOperations);
         return  cosClient.putObject(putObjectRequest);
+    }
+
+    public ResponseEntity<org.springframework.core.io.Resource> downloadImage(String imageUrl) throws MalformedURLException {
+        // 通过 URL 读取远程图片
+        UrlResource resource = new UrlResource(imageUrl);
+
+        if (!resource.exists() || !resource.isReadable()) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
+        }
+        return ResponseEntity.ok()
+                .contentType(MediaType.IMAGE_JPEG) // 你可以动态解析图片类型
+                .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=" + resource.getFilename())
+                .body(resource);
     }
 }

@@ -7,7 +7,7 @@ import com.zhongyuan.tengpicturebackend.common.ResultUtils;
 import com.zhongyuan.tengpicturebackend.constant.UserConstant;
 import com.zhongyuan.tengpicturebackend.exception.BusinessException;
 import com.zhongyuan.tengpicturebackend.exception.ErrorCode;
-import com.zhongyuan.tengpicturebackend.manager.CosManager;
+import com.zhongyuan.tengpicturebackend.manager.cos.CosManager;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;

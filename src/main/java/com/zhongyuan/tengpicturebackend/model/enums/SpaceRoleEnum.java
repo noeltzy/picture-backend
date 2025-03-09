@@ -41,6 +41,19 @@ public enum SpaceRoleEnum {
         return null;
     }
 
+    public static boolean haveRole(SpaceRoleEnum needRole,SpaceRoleEnum nowRole) {
+        if(nowRole == null){
+            return false;
+        }
+        if(needRole.equals(SpaceRoleEnum.ADMIN)){
+            return nowRole.equals(SpaceRoleEnum.ADMIN);
+        }
+        if(needRole.equals(SpaceRoleEnum.EDITOR)){
+            return nowRole.equals(SpaceRoleEnum.EDITOR)||nowRole.equals(SpaceRoleEnum.ADMIN);
+        }
+        return  true;
+    }
+
     /**
      * 获取所有枚举的文本列表
      *

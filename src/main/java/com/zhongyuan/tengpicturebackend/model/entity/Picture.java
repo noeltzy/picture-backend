@@ -34,6 +34,8 @@ public class Picture implements Serializable {
      */
     private String thumbnailUrl;
 
+    private String originUrl;
+
 
     /**
      * 图片名称
@@ -120,6 +122,8 @@ public class Picture implements Serializable {
      * 更新时间
      */
     private Date updateTime;
+
+
 
     /**
      * 是否删除

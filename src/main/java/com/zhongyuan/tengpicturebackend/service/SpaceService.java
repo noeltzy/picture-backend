@@ -8,6 +8,7 @@ import com.zhongyuan.tengpicturebackend.model.entity.Picture;
 import com.zhongyuan.tengpicturebackend.model.entity.Space;
 import com.baomidou.mybatisplus.extension.service.IService;
 import com.zhongyuan.tengpicturebackend.model.entity.User;
+import com.zhongyuan.tengpicturebackend.model.enums.SpaceRoleEnum;
 import com.zhongyuan.tengpicturebackend.model.vo.PictureVo;
 import com.zhongyuan.tengpicturebackend.model.vo.SpaceVO;
 
@@ -20,14 +21,15 @@ import java.util.List;
 * @createDate 2025-02-13 09:43:14
 */
 public interface SpaceService extends IService<Space> {
-    void validSpace(Space space,boolean add);
+    void validSpace(Space space, boolean add);
 
     LambdaQueryWrapper<Space> getQueryWrapper(SpaceQueryRequest spaceQueryRequest);
 
     List<SpaceVO> toVoList(List<Space> spaces, HttpServletRequest request);
+
     void fillSpaceLevel(Space space);
 
-    long addSpace(SpaceAddRequest spaceAddRequest, User loginUser);
+    long addSpace(SpaceAddRequest spaceAddRequest, HttpServletRequest request);
 
     void checkVolume(Space space);
 
@@ -41,8 +43,15 @@ public interface SpaceService extends IService<Space> {
 
     /**
      * 查询spaceType
+     *
      * @param id
      * @return
      */
     Integer getSpaceTypeById(Long id);
+
+    void checkSpaceOptionAuth(Long spaceId, User loginUser, SpaceRoleEnum requestRole);
+
+    void checkSpaceOptionAuth(Space space, User loginUser, SpaceRoleEnum requestRole);
+
+    SpaceVO getSpaceVoById(long id, HttpServletRequest request);
 }
