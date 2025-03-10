@@ -8,6 +8,7 @@ import cn.hutool.json.JSONUtil;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.zhongyuan.tengpicturebackend.annotation.AuthCheck;
+import com.zhongyuan.tengpicturebackend.annotation.RequestLimit;
 import com.zhongyuan.tengpicturebackend.common.BaseResponse;
 import com.zhongyuan.tengpicturebackend.common.IdRequest;
 import com.zhongyuan.tengpicturebackend.common.ResultUtils;
@@ -15,6 +16,8 @@ import com.zhongyuan.tengpicturebackend.constant.RedisConstant;
 import com.zhongyuan.tengpicturebackend.constant.UserConstant;
 import com.zhongyuan.tengpicturebackend.exception.ErrorCode;
 import com.zhongyuan.tengpicturebackend.exception.ThrowUtils;
+import com.zhongyuan.tengpicturebackend.manager.mq.PictureUploadMessage;
+import com.zhongyuan.tengpicturebackend.manager.mq.PictureUploadProducer;
 import com.zhongyuan.tengpicturebackend.model.dto.picture.*;
 import com.zhongyuan.tengpicturebackend.model.entity.Picture;
 import com.zhongyuan.tengpicturebackend.model.entity.Space;
@@ -46,6 +49,7 @@ import java.net.MalformedURLException;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
+import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 
 @RestController
@@ -62,7 +66,8 @@ public class PictureController {
     StringRedisTemplate stringRedisTemplate;
 
     @Resource
-    SpaceService spaceService;
+    PictureUploadProducer pictureUploadProducer;
+
     @Autowired
     private RedisTemplate<Object, Object> redisTemplate;
     /**
@@ -145,7 +150,9 @@ public class PictureController {
      * @param pictureUploadRequest 上传文件id
      * @param request              请求
      * @return 返回值
+     * 上传图片接口，限制每秒每用户5次
      */
+    @RequestLimit(key = "pictureUpload",times = 5)
     @PostMapping("/upload")
     public BaseResponse<PictureVo> uploadPicture(@RequestParam("file") MultipartFile file,
                                                  PictureUploadRequest pictureUploadRequest,
@@ -154,6 +161,26 @@ public class PictureController {
         User loginUser = userService.getLoginUser(request);
         PictureVo pictureVo = pictureService.uploadPicture(file, pictureUploadRequest, loginUser);
         return ResultUtils.success(pictureVo);
+    }
+
+    @PostMapping("/upload/mq")
+    public BaseResponse<PictureVo> uploadPictureMq(@RequestParam("file") MultipartFile file,
+                                                 PictureUploadRequest pictureUploadRequest,
+                                                 HttpServletRequest request) {
+        ThrowUtils.throwIf(file == null || file.isEmpty(), ErrorCode.PARAMS_ERROR, "文件不能为空");
+        User loginUser = userService.getLoginUser(request);
+
+        String uniqueID = UUID.randomUUID().toString();
+
+        PictureUploadMessage pictureUploadMessage = new PictureUploadMessage();
+        pictureUploadMessage.setPictureUploadRequest(pictureUploadRequest);
+        pictureUploadMessage.setMessageId(uniqueID);
+        pictureUploadMessage.setFile(file);
+        pictureUploadMessage.setLoginUser(loginUser);
+        pictureUploadProducer.sendMessage(pictureUploadMessage);
+
+//        PictureVo pictureVo = pictureService.uploadPicture(file, pictureUploadRequest, loginUser);
+        return ResultUtils.success(null);
     }
 
     /**

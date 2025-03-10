@@ -54,8 +54,7 @@ public class SpaceServiceImpl extends ServiceImpl<SpaceMapper, Space>
 
     @Resource
     TransactionTemplate transactionTemplate;
-    @Autowired
-    private SpaceService spaceService;
+
 
     @Override
     public void validSpace(Space space, boolean add) {
@@ -247,7 +246,7 @@ public class SpaceServiceImpl extends ServiceImpl<SpaceMapper, Space>
 
         User loginUser =userService.getLoginUser(request);
 
-        spaceService.checkSpaceOptionAuth(space, loginUser, SpaceRoleEnum.VIEWER);
+        checkSpaceOptionAuth(space, loginUser, SpaceRoleEnum.VIEWER);
 
         return  SpaceVO.objToVo(space, UserVo.obj2Vo(loginUser));
     }

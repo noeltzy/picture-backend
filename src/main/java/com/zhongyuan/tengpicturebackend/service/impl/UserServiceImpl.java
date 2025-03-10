@@ -112,6 +112,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
             log.info("user:{} login fail", userAccount);
             throw new BusinessException(ErrorCode.PARAMS_ERROR, "用户密码错误");
         }
+
         request.getSession().setAttribute(UserConstant.USER_LOGIN_STATUS, user);
         return LoginUserVo.convert(user);
     }
