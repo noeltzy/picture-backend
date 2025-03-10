@@ -2,8 +2,10 @@ package com.zhongyuan.tengpicturebackend.controller;
 
 
 import cn.hutool.core.util.StrUtil;
+import com.zhongyuan.tengpicturebackend.annotation.RequestLimit;
 import com.zhongyuan.tengpicturebackend.api.aliyunai.model.common.CreateTaskResponse;
 import com.zhongyuan.tengpicturebackend.api.aliyunai.model.genPicture.GenPictureRequest;
+import com.zhongyuan.tengpicturebackend.api.aliyunai.model.genPicture.ImageGenerationResponse;
 import com.zhongyuan.tengpicturebackend.api.aliyunai.model.outPainting.GetOutPaintingTaskResponse;
 import com.zhongyuan.tengpicturebackend.common.BaseResponse;
 import com.zhongyuan.tengpicturebackend.common.ResultUtils;
@@ -34,6 +36,7 @@ public class AIController {
     /**
      * 创建 AI 扩图任务
      */
+    @RequestLimit(key = "outPainting",times = 1)
     @PostMapping("/out_painting/create_task")
     public BaseResponse<CreateTaskResponse> createPictureOutPaintingTask(
             @RequestBody CreatePictureOutPaintingTaskRequest createPictureOutPaintingTaskRequest,
@@ -58,6 +61,15 @@ public class AIController {
         }
         return ResultUtils.success(task);
     }
+
+    /**
+     * 创建图像生成任务
+     * @param genPictureRequest
+     * @param request
+     * @return
+     */
+
+    @RequestLimit(key = "genPicture",times = 1)
     @PostMapping("/gen_picture/create_task")
     public BaseResponse<CreateTaskResponse> genPictureCreateTask(
             @RequestBody GenPictureRequest genPictureRequest,
@@ -70,4 +82,11 @@ public class AIController {
         return ResultUtils.success(response);
     }
 
+
+    @GetMapping("/gen_picture/get_task")
+    public BaseResponse<ImageGenerationResponse> getGenPictureTask(String taskId) {
+        ThrowUtils.throwIf(StrUtil.isBlank(taskId), ErrorCode.PARAMS_ERROR);
+        ImageGenerationResponse generationResult = pictureService.getGenerationResult(taskId);
+        return ResultUtils.success(generationResult);
+    }
 }

@@ -16,4 +16,5 @@ public @interface RequestLimit {
      * @return  每秒准许访问的请求次数 默认 2
      */
     int times()  default  2;   // 每秒允许的请求次数
+    int duration() default  10;
 }

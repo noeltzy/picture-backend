@@ -23,6 +23,8 @@ import org.springframework.web.context.request.ServletRequestAttributes;
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
 import java.time.Duration;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.TimeUnit;
 
 @Slf4j
 @Aspect
@@ -41,7 +43,9 @@ public class RateLimitAspect {
         //TODO 业务扩展点，可以根据key的不同,在获取用户信息之后，根据用户是否是VIP给与请求并发数的增加,如果是VIP准许一秒上传20张
         if(requestLimit!=null){
             String key = requestLimit.key();
+            log.info(key);
             int times = requestLimit.times();
+            int duration = requestLimit.duration();
             RequestAttributes requestAttributes = RequestContextHolder.getRequestAttributes();
             ThrowUtils.throwIf(requestAttributes==null, ErrorCode.SYSTEM_ERROR);
             HttpServletRequest request = ((ServletRequestAttributes) requestAttributes).getRequest();
@@ -49,9 +53,10 @@ public class RateLimitAspect {
             User user = userService.getLoginUser(request);
             Long currentRequestUserId = user.getId();
             String limitKey = String.format("tengPicture:rateLimit:%s:%d", key,currentRequestUserId);
+            log.info(limitKey);
             RRateLimiter rateLimiter = redissonClient.getRateLimiter(limitKey);
             if (!rateLimiter.isExists()) {
-                rateLimiter.trySetRate(RateType.OVERALL, times, Duration.ofSeconds(1));
+                rateLimiter.trySetRate(RateType.OVERALL, times, Duration.ofSeconds(duration));
                 //限流器设置十分钟期限
                 rateLimiter.expire(Duration.ofMinutes(10));
             }
@@ -60,8 +65,17 @@ public class RateLimitAspect {
                 log.info("limit");
                 throw new BusinessException(ErrorCode.TOO_MANY_REQUESTS_ERROR);
             }
-            // 正常访问 刷新限流器过期时间
-            rateLimiter.expire(Duration.ofMinutes(10));
+            // 异步刷新限流器的持续时间
+            CompletableFuture.runAsync(() -> {
+                try {
+                    Long ttl =rateLimiter.remainTimeToLive();
+                    if(ttl!=null && ttl< TimeUnit.MINUTES.toMillis(3)){
+                        rateLimiter.expire(Duration.ofMinutes(10));
+                    }
+                }catch (Exception e){
+                    log.info("限流器刷新异常");
+                }
+            });
         }
         log.info("pass");
         return  joinPoint.proceed(); //直接放行
