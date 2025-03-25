@@ -36,7 +36,7 @@ public class AIController {
     /**
      * 创建 AI 扩图任务
      */
-    @RequestLimit(key = "outPainting",times = 1)
+    @RequestLimit(key = "genPicture",times = 1,duration = 10)
     @PostMapping("/out_painting/create_task")
     public BaseResponse<CreateTaskResponse> createPictureOutPaintingTask(
             @RequestBody CreatePictureOutPaintingTaskRequest createPictureOutPaintingTaskRequest,
@@ -69,7 +69,7 @@ public class AIController {
      * @return
      */
 
-    @RequestLimit(key = "genPicture",times = 1)
+    @RequestLimit(key = "genPicture",times = 1,duration = 10)
     @PostMapping("/gen_picture/create_task")
     public BaseResponse<CreateTaskResponse> genPictureCreateTask(
             @RequestBody GenPictureRequest genPictureRequest,
@@ -81,7 +81,6 @@ public class AIController {
         CreateTaskResponse response = pictureService.createGenPictureTask(genPictureRequest, loginUser);
         return ResultUtils.success(response);
     }
-
 
     @GetMapping("/gen_picture/get_task")
     public BaseResponse<ImageGenerationResponse> getGenPictureTask(String taskId) {

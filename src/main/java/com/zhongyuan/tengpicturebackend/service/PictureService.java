@@ -12,6 +12,7 @@ import com.baomidou.mybatisplus.extension.service.IService;
 import com.zhongyuan.tengpicturebackend.model.entity.User;
 import com.zhongyuan.tengpicturebackend.model.enums.SpaceRoleEnum;
 import com.zhongyuan.tengpicturebackend.model.vo.PictureVo;
+import org.springframework.web.multipart.MultipartFile;
 
 import javax.servlet.http.HttpServletRequest;
 import java.net.MalformedURLException;
@@ -60,4 +61,6 @@ public interface PictureService extends IService<Picture> {
     boolean editPicture(PictureEditRequest pictureEditRequest, HttpServletRequest request);
 
     String downloadPicture(Long id, HttpServletRequest request) throws MalformedURLException;
+
+    PictureVo uploadPictureMq(Object file, PictureUploadRequest pictureUploadRequest, User loginUser);
 }

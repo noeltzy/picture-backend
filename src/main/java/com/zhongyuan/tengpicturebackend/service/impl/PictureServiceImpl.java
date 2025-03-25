@@ -23,6 +23,7 @@ import com.zhongyuan.tengpicturebackend.manager.cos.upload.FilePictureUpload;
 import com.zhongyuan.tengpicturebackend.manager.cos.upload.PictureUploadTemplate;
 import com.zhongyuan.tengpicturebackend.manager.cos.upload.UrlPictureUpload;
 import com.zhongyuan.tengpicturebackend.mapper.PictureMapper;
+import com.zhongyuan.tengpicturebackend.message.PictureProcessMessage;
 import com.zhongyuan.tengpicturebackend.model.dto.file.PictureUploadResult;
 import com.zhongyuan.tengpicturebackend.model.dto.picture.*;
 import com.zhongyuan.tengpicturebackend.model.entity.Picture;
@@ -38,14 +39,18 @@ import com.zhongyuan.tengpicturebackend.service.PictureService;
 import com.zhongyuan.tengpicturebackend.service.SpaceService;
 import com.zhongyuan.tengpicturebackend.service.SpaceUserService;
 import com.zhongyuan.tengpicturebackend.service.UserService;
+import com.zhongyuan.tengpicturebackend.utils.picture.PictureProcessRuleEnum;
 import lombok.extern.slf4j.Slf4j;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
+import org.springframework.amqp.rabbit.core.RabbitTemplate;
+import org.springframework.data.redis.connection.Message;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.support.TransactionTemplate;
+import org.springframework.web.multipart.MultipartFile;
 
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
@@ -72,8 +77,6 @@ public class PictureServiceImpl extends ServiceImpl<PictureMapper, Picture>
     @Resource
     UserService userService;
     @Resource
-    SpaceUserService spaceUserService;
-    @Resource
     TransactionTemplate transactionTemplate;
     @Resource
     AliYunApiService aliYunApiService;
@@ -82,6 +85,9 @@ public class PictureServiceImpl extends ServiceImpl<PictureMapper, Picture>
     private CosConfig cosConfig;
     @Resource
     private CosManager cosManager;
+
+    @Resource
+    private RabbitTemplate rabbitTemplate;
 
     @Override
     public PictureVo uploadPicture(Object inputSource, PictureUploadRequest uploadRequest, User loginUser) {
@@ -170,6 +176,103 @@ public class PictureServiceImpl extends ServiceImpl<PictureMapper, Picture>
         return PictureVo.obj2Vo(picture, UserVo.obj2Vo(loginUser));
     }
 
+
+
+    @Override
+    public PictureVo uploadPictureMq(Object inputSource, PictureUploadRequest uploadRequest, User loginUser) {
+        ThrowUtils.throwIf(loginUser == null, ErrorCode.NO_AUTH_ERROR);
+        //判断是上传还是更新
+        Long picId = uploadRequest.getId();
+        Long spaceId = uploadRequest.getSpaceId();
+        // 非公共图库上传
+        if (spaceId != null) {
+            Space space = spaceService.lambdaQuery().eq(Space::getId, spaceId).one();
+            ThrowUtils.throwIf(space == null, ErrorCode.NOT_FOUND_ERROR, "空间不存在");
+            // 如果空间存在,校验权限
+            ThrowUtils.throwIf(!loginUser.getId().equals(space.getUserId()), ErrorCode.NO_AUTH_ERROR, "没有权限");
+            // 校验空间容量
+            spaceService.checkVolume(space);
+        }
+
+        // 如果是更新，id需要存在
+        if (picId != null) {
+            // 无需更新
+            Picture oldPic = this.getById(picId);
+            ThrowUtils.throwIf(oldPic == null, ErrorCode.NOT_FOUND_ERROR, "图片不存在");
+            //本人或者管理员可继续更新图片
+            if (!Objects.equals(oldPic.getUserId(), loginUser.getId()) && !userService.isAdmin(loginUser)) {
+                throw new BusinessException(ErrorCode.NO_AUTH_ERROR);
+            }
+            // 校验更改图片时候spaceId前后是否一至
+            //如果没传递spaceId，则使用旧spaceId
+            if (spaceId == null) {
+                spaceId = oldPic.getSpaceId();
+            } else {
+                //如果传递了spaceId，则校验spaceId是否合法
+                ThrowUtils.throwIf(!Objects.equals(spaceId, oldPic.getSpaceId()), ErrorCode.PARAMS_ERROR, "图片空间不匹配");
+            }
+        }
+        //正常上传图片
+        String filePrefix;
+        PictureUploadTemplate fileManager = filePictureUpload;
+        if (spaceId == null) {
+            //公共图库
+            filePrefix = String.format("public/%s", loginUser.getId());
+        } else {
+            //空间
+            filePrefix = String.format("space/%s", spaceId);
+        }
+
+
+        // 根据 inputSource 判断上传方式
+        if (inputSource instanceof String) {
+            fileManager = urlPictureUpload;
+        }
+        PictureUploadResult pictureUploadResult = fileManager.uploadPictureMq(inputSource, filePrefix);
+        Picture picture = PictureUploadResult.toPicture(pictureUploadResult, loginUser.getId());
+        picture.setSpaceId(spaceId);
+        // 仅限批量抓取图片更新：
+        String batchFetchDefaultName = uploadRequest.getBatchFetchDefaultName();
+        String batchFetchCategory = uploadRequest.getCategory();
+        if (StrUtil.isNotBlank(batchFetchDefaultName)) {
+            picture.setName(batchFetchDefaultName);
+        }
+        if (StrUtil.isNotBlank(batchFetchCategory)) {
+            picture.setCategory(batchFetchCategory);
+        }
+        // end
+
+        // 更新图片 需要添加其他字段
+        if (picId != null) {
+            picture.setId(picId);
+            picture.setEditTime(new Date());
+        }//end
+        //更新审核参数
+        this.setReviewParam(picture, loginUser);
+
+        Long finalSpaceId = spaceId;
+        //事务
+        transactionTemplate.execute(status -> {
+            boolean res = this.saveOrUpdate(picture);
+            ThrowUtils.throwIf(!res, ErrorCode.SYSTEM_ERROR, "保存失败");
+            //非公共图库更新容量
+            if (finalSpaceId != null) {
+                spaceService.updateVolume(finalSpaceId, picture.getPicSize());
+            }
+            return picture;
+        });
+        // 构建消息
+        List<PictureProcessRuleEnum> rules = new ArrayList<>();
+        rules.add(PictureProcessRuleEnum.COMPRESS);
+        rules.add(PictureProcessRuleEnum.THUMBNAIL);
+        PictureProcessMessage message = new PictureProcessMessage();
+        message.setPictureId(picture.getId());
+        message.setOriginPictureKey(picture.getOriginUrl());
+        message.setProcessRules(rules);
+        // 发送消息
+        rabbitTemplate.convertAndSend("picture.process.topic","picture.process", message);
+        return PictureVo.obj2Vo(picture, UserVo.obj2Vo(loginUser));
+    }
     @Override
     public void validPicture(Picture picture) {
         ThrowUtils.throwIf(picture == null, ErrorCode.NOT_FOUND_ERROR, "图片不存在");
@@ -489,6 +592,8 @@ public class PictureServiceImpl extends ServiceImpl<PictureMapper, Picture>
         this.checkPictureOptionAuth(picture,loginUser,SpaceRoleEnum.VIEWER);
         return picture.getOriginUrl()==null?picture.getUrl():picture.getOriginUrl();
     }
+
+
     /**
      * url转换成key
      *
