@@ -1,14 +1,13 @@
-package com.zhongyuan.tengpicturebackend.api.aliyunai.model.outPainting;
+package com.zhongyuan.tengpicturebackend.manager.api.aliyunai.model.outPainting;
 
 import cn.hutool.core.annotation.Alias;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.zhongyuan.tengpicturebackend.api.aliyunai.model.common.ApiRequest;
 import lombok.Data;
 
 import java.io.Serializable;
 
 @Data
-public class CreateOutPaintingTaskRequest implements Serializable, ApiRequest {
+public class CreateOutPaintingTaskRequest implements Serializable {
 
     /**
      * 模型，例如 "image-out-painting"

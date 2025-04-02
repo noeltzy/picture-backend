@@ -1,13 +1,12 @@
-package com.zhongyuan.tengpicturebackend.api.aliyunai.model.genPicture;
+package com.zhongyuan.tengpicturebackend.manager.api.aliyunai.model.genPicture;
 
 
-import com.zhongyuan.tengpicturebackend.api.aliyunai.model.common.ApiRequest;
 import lombok.Data;
 
 import java.io.Serializable;
 
 @Data
-public class GenPictureRequest implements Serializable, ApiRequest {
+public class GenPictureRequest implements Serializable {
     private String model ="wanx2.1-t2i-turbo";
     private Input input = new Input();
     private Parameters parameters = new Parameters();

@@ -9,6 +9,7 @@ import cn.hutool.http.Method;
 import com.zhongyuan.tengpicturebackend.exception.BusinessException;
 import com.zhongyuan.tengpicturebackend.exception.ErrorCode;
 import com.zhongyuan.tengpicturebackend.exception.ThrowUtils;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import java.io.File;
@@ -18,10 +19,18 @@ import java.net.URL;
 
 @Service
 public class UrlPictureUpload extends PictureUploadTemplate {
+
+    private long fileSize;
+
+    @Override
+    protected long getFileSize(Object inputSource) {
+        return this.fileSize;
+    }
+
     @Override
     protected void save2tmpFile(Object inputSource, File tmpFile) throws IOException {
         String fileUrl = (String) inputSource;
-        HttpUtil.downloadFile(fileUrl, tmpFile);
+        fileSize = HttpUtil.downloadFile(fileUrl, tmpFile);
     }
 
     @Override

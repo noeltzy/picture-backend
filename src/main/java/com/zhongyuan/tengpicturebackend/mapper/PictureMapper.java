@@ -10,7 +10,6 @@ import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 * @Entity com.zhongyuan.tengpicturebackend.model.entity.Picture
 */
 public interface PictureMapper extends BaseMapper<Picture> {
-
 }
 
 

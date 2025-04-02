@@ -2,22 +2,21 @@ package com.zhongyuan.tengpicturebackend.service.impl;
 
 import cn.hutool.core.bean.BeanUtil;
 import cn.hutool.core.collection.CollUtil;
-import cn.hutool.core.io.FileUtil;
 import cn.hutool.core.util.ObjUtil;
 import cn.hutool.core.util.StrUtil;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
-import com.zhongyuan.tengpicturebackend.api.aliyunai.model.genPicture.GenPictureRequest;
-import com.zhongyuan.tengpicturebackend.api.aliyunai.model.genPicture.ImageGenerationResponse;
-import com.zhongyuan.tengpicturebackend.api.aliyunai.model.outPainting.CreateOutPaintingTaskRequest;
-import com.zhongyuan.tengpicturebackend.api.aliyunai.model.common.CreateTaskResponse;
-import com.zhongyuan.tengpicturebackend.api.aliyunai.model.outPainting.GetOutPaintingTaskResponse;
-import com.zhongyuan.tengpicturebackend.api.aliyunai.service.AliYunApiService;
 import com.zhongyuan.tengpicturebackend.config.CosConfig;
 import com.zhongyuan.tengpicturebackend.exception.BusinessException;
 import com.zhongyuan.tengpicturebackend.exception.ErrorCode;
 import com.zhongyuan.tengpicturebackend.exception.ThrowUtils;
+import com.zhongyuan.tengpicturebackend.manager.api.aliyunai.model.common.CreateTaskResponse;
+import com.zhongyuan.tengpicturebackend.manager.api.aliyunai.model.genPicture.GenPictureRequest;
+import com.zhongyuan.tengpicturebackend.manager.api.aliyunai.model.genPicture.ImageGenerationResponse;
+import com.zhongyuan.tengpicturebackend.manager.api.aliyunai.model.outPainting.CreateOutPaintingTaskRequest;
+import com.zhongyuan.tengpicturebackend.manager.api.aliyunai.model.outPainting.GetOutPaintingTaskResponse;
+import com.zhongyuan.tengpicturebackend.manager.api.aliyunai.service.AliYunApiService;
 import com.zhongyuan.tengpicturebackend.manager.cos.CosManager;
 import com.zhongyuan.tengpicturebackend.manager.cos.upload.FilePictureUpload;
 import com.zhongyuan.tengpicturebackend.manager.cos.upload.PictureUploadTemplate;
@@ -28,16 +27,15 @@ import com.zhongyuan.tengpicturebackend.model.dto.file.PictureUploadResult;
 import com.zhongyuan.tengpicturebackend.model.dto.picture.*;
 import com.zhongyuan.tengpicturebackend.model.entity.Picture;
 import com.zhongyuan.tengpicturebackend.model.entity.Space;
-import com.zhongyuan.tengpicturebackend.model.entity.SpaceUser;
 import com.zhongyuan.tengpicturebackend.model.entity.User;
 import com.zhongyuan.tengpicturebackend.model.enums.PictureReviewStatusEnum;
 import com.zhongyuan.tengpicturebackend.model.enums.SpaceRoleEnum;
 import com.zhongyuan.tengpicturebackend.model.enums.UserRoleEnum;
 import com.zhongyuan.tengpicturebackend.model.vo.PictureVo;
 import com.zhongyuan.tengpicturebackend.model.vo.UserVo;
+import com.zhongyuan.tengpicturebackend.service.FileInfoService;
 import com.zhongyuan.tengpicturebackend.service.PictureService;
 import com.zhongyuan.tengpicturebackend.service.SpaceService;
-import com.zhongyuan.tengpicturebackend.service.SpaceUserService;
 import com.zhongyuan.tengpicturebackend.service.UserService;
 import com.zhongyuan.tengpicturebackend.utils.picture.PictureProcessRuleEnum;
 import lombok.extern.slf4j.Slf4j;
@@ -46,15 +44,15 @@ import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
-import org.springframework.data.redis.connection.Message;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.support.TransactionTemplate;
-import org.springframework.web.multipart.MultipartFile;
 
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
 import java.io.IOException;
+import java.io.Serializable;
 import java.net.MalformedURLException;
 import java.util.*;
 
@@ -80,6 +78,9 @@ public class PictureServiceImpl extends ServiceImpl<PictureMapper, Picture>
     TransactionTemplate transactionTemplate;
     @Resource
     AliYunApiService aliYunApiService;
+
+    @Resource
+    FileInfoService fileInfoService;
 
     @Resource
     private CosConfig cosConfig;
@@ -140,8 +141,12 @@ public class PictureServiceImpl extends ServiceImpl<PictureMapper, Picture>
             fileManager = urlPictureUpload;
         }
         PictureUploadResult pictureUploadResult = fileManager.uploadPicture(inputSource, filePrefix);
+
+
         Picture picture = PictureUploadResult.toPicture(pictureUploadResult, loginUser.getId());
+
         picture.setSpaceId(spaceId);
+
         // 仅限批量抓取图片更新：
         String batchFetchDefaultName = uploadRequest.getBatchFetchDefaultName();
         String batchFetchCategory = uploadRequest.getCategory();
@@ -175,8 +180,6 @@ public class PictureServiceImpl extends ServiceImpl<PictureMapper, Picture>
 
         return PictureVo.obj2Vo(picture, UserVo.obj2Vo(loginUser));
     }
-
-
 
     @Override
     public PictureVo uploadPictureMq(Object inputSource, PictureUploadRequest uploadRequest, User loginUser) {
@@ -270,9 +273,10 @@ public class PictureServiceImpl extends ServiceImpl<PictureMapper, Picture>
         message.setOriginPictureKey(picture.getOriginUrl());
         message.setProcessRules(rules);
         // 发送消息
-        rabbitTemplate.convertAndSend("picture.process.topic","picture.process", message);
+        rabbitTemplate.convertAndSend("picture.process.topic", "picture.process", message);
         return PictureVo.obj2Vo(picture, UserVo.obj2Vo(loginUser));
     }
+
     @Override
     public void validPicture(Picture picture) {
         ThrowUtils.throwIf(picture == null, ErrorCode.NOT_FOUND_ERROR, "图片不存在");
@@ -444,10 +448,8 @@ public class PictureServiceImpl extends ServiceImpl<PictureMapper, Picture>
     }
 
 
-    // TODO 实际空间释放未完成
     @Override
     public void deletePicture(Long id, User loginUser) {
-
         // 查询是否存在
         Picture oldPic = this.getById(id);
         ThrowUtils.throwIf(ObjUtil.isNull(oldPic), ErrorCode.NOT_FOUND_ERROR, "图片不存在");
@@ -458,31 +460,51 @@ public class PictureServiceImpl extends ServiceImpl<PictureMapper, Picture>
             boolean result = this.removeById(id);
             ThrowUtils.throwIf(!result, ErrorCode.NOT_FOUND_ERROR, "删除图片失败");
             Long spaceId = oldPic.getSpaceId();
-            if (spaceId != null) {
+
+            if (spaceId!=null) {
                 spaceService.updateVolume(spaceId, -oldPic.getPicSize());
             }
+            tryClearPictureFile(oldPic);
             return 1;
         });
     }
 
     @Async
     @Override
-    public void clearPictureFile(Picture picture) {
+    public void tryClearPictureFile(Picture picture) {
+
+        Boolean cosRemove = transactionTemplate.execute(status -> removeRecord(picture));
+        if(ObjUtil.isNull(cosRemove)||!cosRemove){
+            return;
+        }
+        String key = this.url2Key(picture.getUrl());
+        String originKey = this.url2Key(picture.getOriginUrl());
+        String thumbnailKey = this.url2Key(picture.getThumbnailUrl());
+        //执行清理
+        if (StrUtil.isNotBlank(key)) {
+            cosManager.deleteObject(key);
+        }
+        if (StrUtil.isNotBlank(originKey)) {
+            cosManager.deleteObject(originKey);
+        }
+        if (StrUtil.isNotBlank(thumbnailKey)) {
+            cosManager.deleteObject(thumbnailKey);
+        }
+    }
+
+    public boolean removeRecord(Picture picture) {
         // 查看是否存在当前图片
         String url = picture.getUrl();
         Long count = this.lambdaQuery().eq(Picture::getUrl, url).count();
         // 如果只有一条记录用可以删除，超过一条说明有其他记录使用则不适用
         if (count == null || count > 1) {
-            return;
+            return false;
         }
-        String key = this.url2Key(url);
-        //清理原图
-        String originKey = String.format("%s.%s", FileUtil.mainName(key), picture.getPicFormat().toLowerCase());
-        String thumbnailKey = this.url2Key(picture.getThumbnailUrl());
-        //执行清理
-        cosManager.deleteObject(key);
-        cosManager.deleteObject(originKey);
-        cosManager.deleteObject(thumbnailKey);
+        String fileHash = picture.getFileHash();
+        if(fileHash!=null){
+            fileInfoService.remove(fileHash);
+        }
+        return  true;
     }
 
     @Override
@@ -519,22 +541,22 @@ public class PictureServiceImpl extends ServiceImpl<PictureMapper, Picture>
     public PictureVo getPictureVoById(long id, HttpServletRequest request) {
         // 必须存在且审核通过 || 公共空间必须是审核通过的图片
         Picture picture = this.lambdaQuery().eq(Picture::getId, id).one();
-        ThrowUtils.throwIf(ObjUtil.isNull(picture), ErrorCode.NOT_FOUND_ERROR,"非发现资源");
+        ThrowUtils.throwIf(ObjUtil.isNull(picture), ErrorCode.NOT_FOUND_ERROR, "非发现资源");
 
         // 公共空间 查询的结果一定是需要审核通过的
-        if(ObjUtil.isNull(picture.getSpaceId())){
+        if (ObjUtil.isNull(picture.getSpaceId())) {
             PictureReviewStatusEnum reviewStatus = PictureReviewStatusEnum.getEnumByValue(picture.getReviewStatus());
             ThrowUtils.throwIf(!PictureReviewStatusEnum.PASS.equals(reviewStatus), ErrorCode.NOT_FOUND_ERROR);
         }
 
         // 统一的权限校验
         User loginUser = userService.getLoginUser(request);
-        this.checkPictureOptionAuth(picture, loginUser,SpaceRoleEnum.VIEWER);
+        this.checkPictureOptionAuth(picture, loginUser, SpaceRoleEnum.VIEWER);
 
         // 构建返回
         User pictureUser = userService.getById(picture.getUserId());
         UserVo pictureUserVo = UserVo.obj2Vo(pictureUser);
-        return PictureVo.obj2Vo(picture,pictureUserVo);
+        return PictureVo.obj2Vo(picture, pictureUserVo);
     }
 
     @Override
@@ -542,15 +564,15 @@ public class PictureServiceImpl extends ServiceImpl<PictureMapper, Picture>
         // 构建查询请求
         Long spaceId = pictureQueryRequest.getSpaceId();
         User loginUser = userService.getLoginUser(request);
-        Picture picture =new Picture();
-        BeanUtil.copyProperties(pictureQueryRequest,picture);
+        Picture picture = new Picture();
+        BeanUtil.copyProperties(pictureQueryRequest, picture);
         // 如果有空间Id 查询就不需要审核完毕
-        if(spaceId==null){
+        if (spaceId == null) {
             pictureQueryRequest.setReviewStatus(PictureReviewStatusEnum.PASS.getValue());
 
         }
         // 根据统一的查询请求校验参数
-        this.checkPictureOptionAuth(picture, loginUser,SpaceRoleEnum.VIEWER);
+        this.checkPictureOptionAuth(picture, loginUser, SpaceRoleEnum.VIEWER);
 
         // 查询结果并封装返回
         int current = pictureQueryRequest.getCurrent();
@@ -575,7 +597,7 @@ public class PictureServiceImpl extends ServiceImpl<PictureMapper, Picture>
         ThrowUtils.throwIf(ObjUtil.isNull(oldPic), ErrorCode.NOT_FOUND_ERROR, "图片不存在");
         // 本人或者管理员
         User loginUser = userService.getLoginUser(request);
-        this.checkPictureOptionAuth(oldPic,loginUser,SpaceRoleEnum.EDITOR);
+        this.checkPictureOptionAuth(oldPic, loginUser, SpaceRoleEnum.EDITOR);
         // 数据库操作
         this.setReviewParam(picture, loginUser);
 
@@ -589,8 +611,8 @@ public class PictureServiceImpl extends ServiceImpl<PictureMapper, Picture>
         User loginUser = userService.getLoginUser(request);
 
         //TODO VIP拥有其他额外权力,暂时不添加
-        this.checkPictureOptionAuth(picture,loginUser,SpaceRoleEnum.VIEWER);
-        return picture.getOriginUrl()==null?picture.getUrl():picture.getOriginUrl();
+        this.checkPictureOptionAuth(picture, loginUser, SpaceRoleEnum.VIEWER);
+        return picture.getOriginUrl() == null ? picture.getUrl() : picture.getOriginUrl();
     }
 
 
@@ -613,16 +635,23 @@ public class PictureServiceImpl extends ServiceImpl<PictureMapper, Picture>
         // 公共图片的判断逻辑主要是图片的所有权来进行判断
         if (spaceId == null) {
             // 公共空间 任何人都可以执行读操作 哪怕是批量查询
-            if(SpaceRoleEnum.VIEWER.equals(requestRole)) {
+            if (SpaceRoleEnum.VIEWER.equals(requestRole)) {
                 return;
             }
             //公共空间，允许其他操作只准许是本人和管理员
             if (!Objects.equals(pictureOwnUserId, currentUserId) && !userService.isAdmin(loginUser)) {
-                throw new BusinessException(ErrorCode.NO_AUTH_ERROR,"公共空间，允许操作是本人和管理员");
+                throw new BusinessException(ErrorCode.NO_AUTH_ERROR, "公共空间，允许操作是本人和管理员");
             }
         } else {
-            spaceService.checkSpaceOptionAuth(spaceId,loginUser, requestRole);
+            spaceService.checkSpaceOptionAuth(spaceId, loginUser, requestRole);
         }
+    }
+
+
+    @Override
+    public Picture getById(Serializable id) {
+        // redis 缓存版本
+        return super.getById(id);
     }
 }
 

@@ -1,4 +1,4 @@
-package com.zhongyuan.tengpicturebackend.api.aliyunai.model.common;
+package com.zhongyuan.tengpicturebackend.manager.api.aliyunai.model.common;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;

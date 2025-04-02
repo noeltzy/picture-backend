@@ -6,6 +6,8 @@ import cn.hutool.core.io.FileUtil;
 import cn.hutool.core.io.file.FileNameUtil;
 import cn.hutool.core.util.NumberUtil;
 import cn.hutool.core.util.RandomUtil;
+import cn.hutool.core.util.StrUtil;
+import cn.hutool.crypto.digest.DigestUtil;
 import com.qcloud.cos.model.PutObjectResult;
 import com.qcloud.cos.model.ciModel.persistence.CIObject;
 import com.qcloud.cos.model.ciModel.persistence.ImageInfo;
@@ -15,9 +17,9 @@ import com.zhongyuan.tengpicturebackend.exception.BusinessException;
 import com.zhongyuan.tengpicturebackend.exception.ErrorCode;
 import com.zhongyuan.tengpicturebackend.exception.ThrowUtils;
 import com.zhongyuan.tengpicturebackend.manager.cos.CosManager;
-import com.zhongyuan.tengpicturebackend.message.PictureProcessMessage;
 import com.zhongyuan.tengpicturebackend.model.dto.file.PictureUploadResult;
-import com.zhongyuan.tengpicturebackend.utils.picture.PictureProcessRuleEnum;
+import com.zhongyuan.tengpicturebackend.model.entity.FileInfo;
+import com.zhongyuan.tengpicturebackend.service.FileInfoService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.stereotype.Service;
@@ -25,7 +27,6 @@ import org.springframework.stereotype.Service;
 import javax.annotation.Resource;
 import java.io.File;
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
@@ -42,11 +43,12 @@ public abstract class PictureUploadTemplate {
     private CosManager cosManager;
 
     @Resource
-    private  RabbitTemplate rabbitTemplate;
+    FileInfoService fileInfoService;
+
     /**
      * 上传图片
      *
-     * @param inputSource 文件元
+     * @param inputSource      文件元
      * @param uploadPathPrefix 上传路径前缀
      * @return 上传图像信息
      */
@@ -57,9 +59,9 @@ public abstract class PictureUploadTemplate {
         String uuid = RandomUtil.randomNumbers(12);
         //TODO 获取originalFilename
         String originalFilename = getFullFileName(inputSource);
-        String extName =FileNameUtil.extName(originalFilename);
+        String extName = FileNameUtil.extName(originalFilename);
         String[] split = extName.split("\\?");
-        extName=split[0];
+        extName = split[0];
         String uploadFileName = String.format("%s_%s.%s", DateUtil.formatDate(new Date()), uuid, extName);
         String originFileUploadPath = String.format("/%s/%s", uploadPathPrefix, uploadFileName);
         //上传图片
@@ -67,29 +69,36 @@ public abstract class PictureUploadTemplate {
         try {
             tmpFile = File.createTempFile(originFileUploadPath, null);
             save2tmpFile(inputSource, tmpFile);
+            // TODO 查询Md5 如果存在实现秒传
+            String md5Hex = DigestUtil.md5Hex(tmpFile);
+            // 1. 首先判断是否是公共空间
+            if(StrUtil.contains(originFileUploadPath,"public")){
+                // 2. 判断是否是已经存在上传的记录了
+                FileInfo fileInfo = fileInfoService.checkUpload(md5Hex);
+                if(fileInfo != null){
+                    log.info("秒传{}",fileInfo.getFileHash());
+                    // 3. 如果有就返回文件信息 三个filePath,构建文件上传返回类,不用走文件上传流程
+                    // 用于统计图片的上传次数
+                    fileInfoService.upload(md5Hex);
+                    return FileInfo.toPictureUploadResult(fileInfo);
+                }
+            }
             // 1. 上传文件到cos
             long currentTime = System.currentTimeMillis();
             PutObjectResult putObjectResult = cosManager.putPictureObject(tmpFile, originFileUploadPath);
+            long contentLength = putObjectResult.getMetadata().getContentLength();
+            putObjectResult.getMetadata().getContentMD5();
             long endTime = System.currentTimeMillis();
-            log.info("图片{},上传完毕，共耗费时间：{}ms",originalFilename,endTime-currentTime); //图片头像.jpg,上传完毕，共耗费时间：664ms
+            log.info("图片{},上传完毕，共耗费时间：{}ms,图片大小为{}", originalFilename, endTime - currentTime, contentLength); //图片头像.jpg,上传完毕，共耗费时间：664ms
             //上传完毕
-            // 2. 获取图片信息
-            ImageInfo imageInfo = putObjectResult.getCiUploadResult().getOriginalInfo().getImageInfo();
-            ProcessResults processResults = putObjectResult.getCiUploadResult().getProcessResults();
-            List<CIObject> objectList = processResults.getObjectList();
-            // 增加对修改后文件信息的获取
-            if(CollUtil.isNotEmpty(objectList)){
-                CIObject comPressCiObject = objectList.get(0);
-                // 逻辑是默认没有处理缩略图 则默认使用压缩图
-                CIObject thumbnailCiObject= comPressCiObject;
-                if(objectList.size() > 1){
-                    // 处理了则使用自己的图
-                    thumbnailCiObject = objectList.get(1);
-                }
-                return getPictureUploadResult(imageInfo,originalFilename,originFileUploadPath,comPressCiObject,thumbnailCiObject);
-            }
-            // 上传到cos 并返回信息
-            return getPictureUploadResult(imageInfo,tmpFile, originFileUploadPath, originalFilename);
+            PictureUploadResult uploadResult = getUploadResult(putObjectResult, originFileUploadPath);
+            uploadResult.setPicName(FileUtil.mainName(originalFilename));
+            long fileSize = getFileSize(inputSource);
+            uploadResult.setPicSize(fileSize);
+            // 从uploadResult 保存图片md5记录
+            fileInfoService.uploadNewFile(uploadResult,md5Hex);
+
+            return uploadResult;
         } catch (IOException e) {
             log.error("file upload error,path:{}", originalFilename, e);
             throw new BusinessException(ErrorCode.SYSTEM_ERROR);
@@ -100,7 +109,30 @@ public abstract class PictureUploadTemplate {
 
     }
 
+    private PictureUploadResult getUploadResult(PutObjectResult putObjectResult, String originFileUploadPath) {
 
+        PictureUploadResult pictureUploadResult = new PictureUploadResult();
+        ImageInfo imageInfo = putObjectResult.getCiUploadResult().getOriginalInfo().getImageInfo();
+        String format = imageInfo.getFormat();
+        int width = imageInfo.getWidth();
+        int height = imageInfo.getHeight();
+
+        double picScale = NumberUtil.round(width * 1.0 / height, 2).doubleValue();
+        pictureUploadResult.setPicWidth(width);
+        pictureUploadResult.setPicHeight(height);
+        pictureUploadResult.setPicScale(picScale);
+        pictureUploadResult.setPicFormat(format);
+        pictureUploadResult.setOriginUrl(cosConfig.getHost() + originFileUploadPath);
+        ProcessResults processResults = putObjectResult.getCiUploadResult().getProcessResults();
+        List<CIObject> objectList = processResults.getObjectList();
+        if (CollUtil.isNotEmpty(objectList)) {
+            pictureUploadResult.setUrl(cosConfig.getHost() + "/" + objectList.get(0).getKey());
+            if (objectList.size() > 1) {
+                pictureUploadResult.setThumbnailUrl(cosConfig.getHost() + "/" + objectList.get(1).getKey());
+            }
+        }
+        return pictureUploadResult;
+    }
 
 
     public PictureUploadResult uploadPictureMq(Object inputSource, String uploadPathPrefix) {
@@ -109,9 +141,9 @@ public abstract class PictureUploadTemplate {
         //拼接图片访问地址
         String uuid = RandomUtil.randomNumbers(12);
         String originalFilename = getFullFileName(inputSource);
-        String extName =FileNameUtil.extName(originalFilename);
+        String extName = FileNameUtil.extName(originalFilename);
         String[] split = extName.split("\\?");
-        extName=split[0];
+        extName = split[0];
         String uploadFileName = String.format("%s_%s.%s", DateUtil.formatDate(new Date()), uuid, extName);
         String originFileUploadPath = String.format("/%s/%s", uploadPathPrefix, uploadFileName);
         //上传图片
@@ -123,12 +155,13 @@ public abstract class PictureUploadTemplate {
             long currentTime = System.currentTimeMillis();
             PutObjectResult putObjectResult = cosManager.putPictureObjectDelayProcess(tmpFile, originFileUploadPath);
             long endTime = System.currentTimeMillis();
-            log.info("图片{},上传完毕，共耗费时间：{}ms",originalFilename,endTime-currentTime); //图片头像.jpg,上传完毕，共耗费时间：664ms
+            log.info("图片{},上传完毕，共耗费时间：{}ms", originalFilename, endTime - currentTime); //图片头像.jpg,上传完毕，共耗费时间：664ms
             //上传完毕
-            // 2. 获取图片信息
-            ImageInfo imageInfo = putObjectResult.getCiUploadResult().getOriginalInfo().getImageInfo();
-            // 上传到cos 并返回信息
-            return getPictureUploadResult(imageInfo,tmpFile, originFileUploadPath, originalFilename);
+            long fileSize = getFileSize(inputSource);
+            PictureUploadResult uploadResult = getUploadResult(putObjectResult, originFileUploadPath);
+            uploadResult.setPicName(FileUtil.mainName(originalFilename));
+            uploadResult.setPicSize(fileSize);
+            return uploadResult;
         } catch (IOException e) {
             log.error("file upload error,path:{}", originalFilename, e);
             throw new BusinessException(ErrorCode.SYSTEM_ERROR);
@@ -139,53 +172,7 @@ public abstract class PictureUploadTemplate {
 
     }
 
-    private PictureUploadResult getPictureUploadResult(ImageInfo imageInfo,String originalFilename,String originFileUploadPath, CIObject ciObject, CIObject thumbnailCiObject) {
-        //格式保留原来格式
-        String format = imageInfo.getFormat();
-        int width = ciObject.getWidth();
-        int height = ciObject.getHeight();
-        // 3 填入图片上传结果
-        PictureUploadResult pictureUploadResult = new PictureUploadResult();
-        double picScale = NumberUtil.round(width * 1.0 / height, 2).doubleValue();
-        // 原图位置
-        pictureUploadResult.setOriginUrl(cosConfig.getHost()+originFileUploadPath);
-        pictureUploadResult.setUrl(cosConfig.getHost() + "/"+ciObject.getKey());
-        pictureUploadResult.setPicName(FileUtil.mainName(originalFilename));
-        pictureUploadResult.setPicFormat(format);
-        pictureUploadResult.setPicSize(ciObject.getSize().longValue());
-        pictureUploadResult.setPicWidth(width);
-        pictureUploadResult.setPicHeight(height);
-        pictureUploadResult.setPicScale(picScale);
-        pictureUploadResult.setThumbnailUrl(cosConfig.getHost() + "/"+thumbnailCiObject.getKey());
-        return pictureUploadResult;
-    }
-
-    /**
-     * 上传本地图像文件到cos
-     *
-     * @param tmpFile          本地文件
-     * @param uploadPath       上传路径
-     * @param originalFilename 原始文件名
-     * @return 上传结果
-     */
-    private PictureUploadResult getPictureUploadResult(ImageInfo imageInfo,File tmpFile, String uploadPath, String originalFilename) {
-
-        String format = imageInfo.getFormat();
-        int width = imageInfo.getWidth();
-        int height = imageInfo.getHeight();
-        // 3 填入图片上传结果
-        PictureUploadResult pictureUploadResult = new PictureUploadResult();
-        pictureUploadResult.setOriginUrl(cosConfig.getHost() + uploadPath);
-        double picScale = NumberUtil.round(width * 1.0 / height, 2).doubleValue();
-        pictureUploadResult.setUrl(cosConfig.getHost() + uploadPath);
-        pictureUploadResult.setPicName(FileUtil.mainName(originalFilename));
-        pictureUploadResult.setPicFormat(format);
-        pictureUploadResult.setPicSize(FileUtil.size(tmpFile));
-        pictureUploadResult.setPicWidth(width);
-        pictureUploadResult.setPicHeight(height);
-        pictureUploadResult.setPicScale(picScale);
-        return pictureUploadResult;
-    }
+    protected abstract long getFileSize(Object inputSource);
 
     /**
      * 保存文件到临时目录

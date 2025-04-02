@@ -1,4 +1,4 @@
-package com.zhongyuan.tengpicturebackend.api.aliyunai.config;
+package com.zhongyuan.tengpicturebackend.manager.api.aliyunai.config;
 
 import lombok.Data;
 import org.springframework.boot.context.properties.ConfigurationProperties;

@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.zhongyuan.tengpicturebackend.mapper.FileInfoMapper">
+
+    <resultMap id="BaseResultMap" type="com.zhongyuan.tengpicturebackend.model.entity.FileInfo">
+            <id property="id" column="id" />
+            <result property="fileName" column="fileName" />
+            <result property="fileSize" column="fileSize" />
+            <result property="fileHash" column="fileHash" />
+            <result property="fileUrl" column="fileUrl" />
+            <result property="uploadCount" column="uploadCount" />
+            <result property="uploadTime" column="uploadTime" />
+            <result property="fileHeight" column="fileHeight" />
+            <result property="fileWidth" column="fileWidth" />
+            <result property="fileFormat" column="fileFormat" />
+    </resultMap>
+
+    <sql id="Base_Column_List">
+        id,fileName,fileSize,fileHash,fileUrl,uploadCount,
+        uploadTime,fileHeight,fileWidth,fileFormat
+    </sql>
+</mapper>

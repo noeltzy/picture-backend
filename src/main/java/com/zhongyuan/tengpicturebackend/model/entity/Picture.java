@@ -99,6 +99,11 @@ public class Picture implements Serializable {
     private String reviewMessage;
 
     /**
+     *
+     */
+    private String fileHash;
+
+    /**
      * 审核人 ID
      */
     private Long reviewerId;

@@ -3,6 +3,7 @@ package com.zhongyuan.tengpicturebackend.manager.cos.upload;
 import cn.hutool.core.io.FileUtil;
 import com.zhongyuan.tengpicturebackend.exception.ErrorCode;
 import com.zhongyuan.tengpicturebackend.exception.ThrowUtils;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -12,6 +13,12 @@ import java.io.IOException;
 
 @Service
 public class FilePictureUpload extends PictureUploadTemplate {
+    @Override
+    protected long getFileSize(Object inputSource) {
+        MultipartFile file = (MultipartFile) inputSource;
+        return file.getSize();
+    }
+
     @Override
     protected void save2tmpFile(Object inputSource, File tmpFile) throws IOException {
         MultipartFile file = (MultipartFile) inputSource;

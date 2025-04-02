@@ -1,18 +1,23 @@
 package com.zhongyuan.tengpicturebackend.controller;
 
 
+import cn.hutool.core.util.ObjUtil;
 import cn.hutool.core.util.StrUtil;
 import com.zhongyuan.tengpicturebackend.annotation.RequestLimit;
-import com.zhongyuan.tengpicturebackend.api.aliyunai.model.common.CreateTaskResponse;
-import com.zhongyuan.tengpicturebackend.api.aliyunai.model.genPicture.GenPictureRequest;
-import com.zhongyuan.tengpicturebackend.api.aliyunai.model.genPicture.ImageGenerationResponse;
-import com.zhongyuan.tengpicturebackend.api.aliyunai.model.outPainting.GetOutPaintingTaskResponse;
+import com.zhongyuan.tengpicturebackend.service.ImageGenTaskService;
+import com.zhongyuan.tengpicturebackend.service.PictureAiService;
+import com.zhongyuan.tengpicturebackend.manager.api.aliyunai.model.common.CreateTaskResponse;
+import com.zhongyuan.tengpicturebackend.manager.api.aliyunai.model.genPicture.GenPictureRequest;
+import com.zhongyuan.tengpicturebackend.manager.api.aliyunai.model.genPicture.ImageGenerationResponse;
+import com.zhongyuan.tengpicturebackend.manager.api.aliyunai.model.outPainting.GetOutPaintingTaskResponse;
 import com.zhongyuan.tengpicturebackend.common.BaseResponse;
 import com.zhongyuan.tengpicturebackend.common.ResultUtils;
 import com.zhongyuan.tengpicturebackend.exception.BusinessException;
 import com.zhongyuan.tengpicturebackend.exception.ErrorCode;
 import com.zhongyuan.tengpicturebackend.exception.ThrowUtils;
+import com.zhongyuan.tengpicturebackend.model.dto.ai.GenPictureTaskRequest;
 import com.zhongyuan.tengpicturebackend.model.dto.picture.CreatePictureOutPaintingTaskRequest;
+import com.zhongyuan.tengpicturebackend.model.entity.ImageGenTask;
 import com.zhongyuan.tengpicturebackend.model.entity.User;
 import com.zhongyuan.tengpicturebackend.service.PictureService;
 import com.zhongyuan.tengpicturebackend.service.UserService;
@@ -33,6 +38,12 @@ public class AIController {
 
     @Resource
     PictureService pictureService;
+
+    @Resource
+    PictureAiService aiService;
+
+    @Resource
+    ImageGenTaskService imageGenTaskService;
     /**
      * 创建 AI 扩图任务
      */
@@ -87,5 +98,22 @@ public class AIController {
         ThrowUtils.throwIf(StrUtil.isBlank(taskId), ErrorCode.PARAMS_ERROR);
         ImageGenerationResponse generationResult = pictureService.getGenerationResult(taskId);
         return ResultUtils.success(generationResult);
+    }
+
+    @PostMapping("/gen_picture/get_task/v2")
+    public BaseResponse<ImageGenTask> genPictureCreateTaskV2(
+            @RequestBody GenPictureTaskRequest genPictureTaskRequest,
+            HttpServletRequest request) {
+
+        User loginUser = userService.getLoginUser(request);
+        ImageGenTask response = aiService.createGenPictureTask(genPictureTaskRequest,loginUser);
+        return ResultUtils.success(response);
+    }
+
+    @GetMapping("/gen_picture/get_task/v2")
+    public BaseResponse<ImageGenTask> getGenPictureTaskV2(Long taskId) {
+        ThrowUtils.throwIf(ObjUtil.isNull(taskId), ErrorCode.PARAMS_ERROR);
+        ImageGenTask task = imageGenTaskService.getById(taskId);
+        return ResultUtils.success(task);
     }
 }

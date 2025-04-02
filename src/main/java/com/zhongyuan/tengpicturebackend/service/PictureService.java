@@ -2,17 +2,16 @@ package com.zhongyuan.tengpicturebackend.service;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
-import com.zhongyuan.tengpicturebackend.api.aliyunai.model.common.CreateTaskResponse;
-import com.zhongyuan.tengpicturebackend.api.aliyunai.model.genPicture.GenPictureRequest;
-import com.zhongyuan.tengpicturebackend.api.aliyunai.model.genPicture.ImageGenerationResponse;
-import com.zhongyuan.tengpicturebackend.api.aliyunai.model.outPainting.GetOutPaintingTaskResponse;
+import com.zhongyuan.tengpicturebackend.manager.api.aliyunai.model.common.CreateTaskResponse;
+import com.zhongyuan.tengpicturebackend.manager.api.aliyunai.model.genPicture.GenPictureRequest;
+import com.zhongyuan.tengpicturebackend.manager.api.aliyunai.model.genPicture.ImageGenerationResponse;
+import com.zhongyuan.tengpicturebackend.manager.api.aliyunai.model.outPainting.GetOutPaintingTaskResponse;
 import com.zhongyuan.tengpicturebackend.model.dto.picture.*;
 import com.zhongyuan.tengpicturebackend.model.entity.Picture;
 import com.baomidou.mybatisplus.extension.service.IService;
 import com.zhongyuan.tengpicturebackend.model.entity.User;
 import com.zhongyuan.tengpicturebackend.model.enums.SpaceRoleEnum;
 import com.zhongyuan.tengpicturebackend.model.vo.PictureVo;
-import org.springframework.web.multipart.MultipartFile;
 
 import javax.servlet.http.HttpServletRequest;
 import java.net.MalformedURLException;
@@ -45,7 +44,7 @@ public interface PictureService extends IService<Picture> {
 
     void deletePicture(Long id, User loginUser);
 
-    void clearPictureFile(Picture picture);
+    void tryClearPictureFile(Picture picture);
 
     CreateTaskResponse createPictureOutPaintingTask(CreatePictureOutPaintingTaskRequest createPictureOutPaintingTaskRequest, User loginUser);
     CreateTaskResponse createGenPictureTask(GenPictureRequest request, User loginUser);
