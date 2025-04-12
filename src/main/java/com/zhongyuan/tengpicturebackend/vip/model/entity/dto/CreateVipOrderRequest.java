@@ -1,4 +1,11 @@
 package com.zhongyuan.tengpicturebackend.vip.model.entity.dto;
 
-public class CreateVipOrderRequest {
+
+import lombok.Data;
+
+import java.io.Serializable;
+
+@Data
+public class CreateVipOrderRequest implements Serializable {
+    int vipLevel;
 }

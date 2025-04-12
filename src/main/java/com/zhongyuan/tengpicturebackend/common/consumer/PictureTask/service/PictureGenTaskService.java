@@ -1,4 +1,4 @@
-package com.zhongyuan.tengpicturebackend.common.comsumer.PictureTask.service;
+package com.zhongyuan.tengpicturebackend.common.consumer.PictureTask.service;
 
 import com.zhongyuan.tengpicturebackend.pictureSpace.model.entity.ImageGenTask;
 import com.zhongyuan.tengpicturebackend.pictureSpace.service.ImageGenTaskService;

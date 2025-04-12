@@ -1,4 +1,4 @@
-package com.zhongyuan.tengpicturebackend.config;
+package com.zhongyuan.tengpicturebackend.common.config;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.module.SimpleModule;

@@ -1,20 +1,14 @@
-package com.zhongyuan.tengpicturebackend.service;
+package com.zhongyuan.tengpicturebackend.pictureSpace.service;
 
-import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.service.IService;
-import com.zhongyuan.tengpicturebackend.model.dto.space.SpaceAddRequest;
-import com.zhongyuan.tengpicturebackend.model.dto.space.SpaceQueryRequest;
-import com.zhongyuan.tengpicturebackend.model.dto.space.analyze.SpaceCategoryAnalyzeRequest;
-import com.zhongyuan.tengpicturebackend.model.dto.space.analyze.SpaceTagAnalyzeRequest;
-import com.zhongyuan.tengpicturebackend.model.dto.space.analyze.SpaceUsageAnalyzeRequest;
-import com.zhongyuan.tengpicturebackend.model.dto.space.analyze.SpaceUserAnalyzeRequest;
-import com.zhongyuan.tengpicturebackend.model.entity.Space;
-import com.zhongyuan.tengpicturebackend.model.entity.User;
-import com.zhongyuan.tengpicturebackend.model.vo.LoginUserVo;
-import com.zhongyuan.tengpicturebackend.model.vo.SpaceVO;
-import com.zhongyuan.tengpicturebackend.model.vo.analyze.*;
+import com.zhongyuan.tengpicturebackend.pictureSpace.model.dto.space.analyze.SpaceCategoryAnalyzeRequest;
+import com.zhongyuan.tengpicturebackend.pictureSpace.model.dto.space.analyze.SpaceTagAnalyzeRequest;
+import com.zhongyuan.tengpicturebackend.pictureSpace.model.dto.space.analyze.SpaceUsageAnalyzeRequest;
+import com.zhongyuan.tengpicturebackend.pictureSpace.model.dto.space.analyze.SpaceUserAnalyzeRequest;
+import com.zhongyuan.tengpicturebackend.pictureSpace.model.entity.Space;
+import com.zhongyuan.tengpicturebackend.pictureSpace.model.entity.User;
+import com.zhongyuan.tengpicturebackend.pictureSpace.model.vo.analyze.*;
 
-import javax.servlet.http.HttpServletRequest;
 import java.util.List;
 
 /**
@@ -47,7 +41,7 @@ public interface SpaceAnalyzeService extends IService<Space> {
      * @return
      *
      */
-    List<SpaceTagAnalyzeResponse> getSpaceTagAnalyzeResponse(SpaceTagAnalyzeRequest spaceTagAnalyzeRequest,User loginUser);
+    List<SpaceTagAnalyzeResponse> getSpaceTagAnalyzeResponse(SpaceTagAnalyzeRequest spaceTagAnalyzeRequest, User loginUser);
 
     /**
      * 用户分析

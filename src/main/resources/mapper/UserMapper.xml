@@ -2,9 +2,9 @@
 <!DOCTYPE mapper
         PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
         "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
-<mapper namespace="com.zhongyuan.tengpicturebackend.mapper.UserMapper">
+<mapper namespace="com.zhongyuan.tengpicturebackend.pictureSpace.mapper.UserMapper">
 
-    <resultMap id="BaseResultMap" type="com.zhongyuan.tengpicturebackend.model.entity.User">
+    <resultMap id="BaseResultMap" type="com.zhongyuan.tengpicturebackend.pictureSpace.model.entity.User">
             <id property="id" column="id" />
             <result property="userAccount" column="userAccount" />
             <result property="userPassword" column="userPassword" />

@@ -1,15 +1,14 @@
-package com.zhongyuan.tengpicturebackend.service;
+package com.zhongyuan.tengpicturebackend.pictureSpace.service;
 
-import com.zhongyuan.tengpicturebackend.common.IdRequest;
-import com.zhongyuan.tengpicturebackend.model.dto.space.SpaceAddRequest;
-import com.zhongyuan.tengpicturebackend.model.dto.spaceUser.SpaceUserAddRequest;
-import com.zhongyuan.tengpicturebackend.model.dto.spaceUser.SpaceUserEditRequest;
-import com.zhongyuan.tengpicturebackend.model.dto.spaceUser.SpaceUserQueryRequest;
-import com.zhongyuan.tengpicturebackend.model.entity.SpaceUser;
+import com.zhongyuan.tengpicturebackend.common.model.IdRequest;
+import com.zhongyuan.tengpicturebackend.pictureSpace.model.dto.spaceUser.SpaceUserAddRequest;
+import com.zhongyuan.tengpicturebackend.pictureSpace.model.dto.spaceUser.SpaceUserEditRequest;
+import com.zhongyuan.tengpicturebackend.pictureSpace.model.dto.spaceUser.SpaceUserQueryRequest;
+import com.zhongyuan.tengpicturebackend.pictureSpace.model.entity.SpaceUser;
 import com.baomidou.mybatisplus.extension.service.IService;
-import com.zhongyuan.tengpicturebackend.model.entity.User;
-import com.zhongyuan.tengpicturebackend.model.vo.SpaceMemberVo;
-import com.zhongyuan.tengpicturebackend.model.vo.SpaceUserVO;
+import com.zhongyuan.tengpicturebackend.pictureSpace.model.entity.User;
+import com.zhongyuan.tengpicturebackend.pictureSpace.model.vo.SpaceMemberVo;
+import com.zhongyuan.tengpicturebackend.pictureSpace.model.vo.SpaceUserVO;
 
 import java.util.List;
 

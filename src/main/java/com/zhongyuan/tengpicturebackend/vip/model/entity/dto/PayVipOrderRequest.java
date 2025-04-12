@@ -6,6 +6,10 @@ import lombok.Data;
 import java.io.Serializable;
 
 @Data
-public class CreateVipOrderRequest implements Serializable {
-    int vipLevel;
+public class PayVipOrderRequest implements Serializable {
+    String orderNo;
+    /**
+     * 支付了多少钱
+     */
+    int amount;
 }

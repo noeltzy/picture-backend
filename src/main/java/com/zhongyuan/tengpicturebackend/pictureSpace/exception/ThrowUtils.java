@@ -1,4 +1,4 @@
-package com.zhongyuan.tengpicturebackend.exception;
+package com.zhongyuan.tengpicturebackend.pictureSpace.exception;
 
 import cn.hutool.core.util.StrUtil;
 import lombok.extern.slf4j.Slf4j;

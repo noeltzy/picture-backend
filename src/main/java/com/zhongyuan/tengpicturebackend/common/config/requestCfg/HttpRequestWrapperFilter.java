@@ -1,4 +1,4 @@
-package com.zhongyuan.tengpicturebackend.config.requestCfg;
+package com.zhongyuan.tengpicturebackend.common.config.requestCfg;
 
 import cn.hutool.http.ContentType;
 import cn.hutool.http.Header;

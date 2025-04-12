@@ -1,8 +1,8 @@
-package com.zhongyuan.tengpicturebackend.manager.websocket.config;
+package com.zhongyuan.tengpicturebackend.pictureSpace.manager.websocket.config;
 
 
-import com.zhongyuan.tengpicturebackend.manager.websocket.WsHandshakeInterceptor;
-import com.zhongyuan.tengpicturebackend.manager.websocket.WsPictureEditHandler;
+import com.zhongyuan.tengpicturebackend.pictureSpace.manager.websocket.WsHandshakeInterceptor;
+import com.zhongyuan.tengpicturebackend.pictureSpace.manager.websocket.WsPictureEditHandler;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.web.socket.config.annotation.EnableWebSocket;
 import org.springframework.web.socket.config.annotation.WebSocketConfigurer;

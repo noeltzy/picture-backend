@@ -1,15 +1,10 @@
 package com.zhongyuan.tengpicturebackend.pictureSpace.model.dto.user;
 
-import com.baomidou.mybatisplus.annotation.IdType;
-import com.baomidou.mybatisplus.annotation.TableId;
-import com.baomidou.mybatisplus.annotation.TableLogic;
-import com.baomidou.mybatisplus.annotation.TableName;
-import com.zhongyuan.tengpicturebackend.common.PageRequest;
+import com.zhongyuan.tengpicturebackend.common.model.PageRequest;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 
 import java.io.Serializable;
-import java.util.Date;
 
 /**
  * 用户

@@ -1,8 +1,8 @@
-package com.zhongyuan.tengpicturebackend.controller;
+package com.zhongyuan.tengpicturebackend.pictureSpace.controller;
 
-import com.zhongyuan.tengpicturebackend.annotation.RequestLimit;
-import com.zhongyuan.tengpicturebackend.common.BaseResponse;
-import com.zhongyuan.tengpicturebackend.common.ResultUtils;
+import com.zhongyuan.tengpicturebackend.common.annotation.RequestLimit;
+import com.zhongyuan.tengpicturebackend.common.model.BaseResponse;
+import com.zhongyuan.tengpicturebackend.common.utils.ResultUtils;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;

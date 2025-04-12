@@ -1,4 +1,4 @@
-package com.zhongyuan.tengpicturebackend.mapper;
+package com.zhongyuan.tengpicturebackend.pictureSpace.mapper;
 
 import com.zhongyuan.tengpicturebackend.pictureSpace.model.entity.Picture;
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;

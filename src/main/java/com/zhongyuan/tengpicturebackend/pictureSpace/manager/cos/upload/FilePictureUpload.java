@@ -1,9 +1,8 @@
-package com.zhongyuan.tengpicturebackend.manager.cos.upload;
+package com.zhongyuan.tengpicturebackend.pictureSpace.manager.cos.upload;
 
 import cn.hutool.core.io.FileUtil;
-import com.zhongyuan.tengpicturebackend.exception.ErrorCode;
-import com.zhongyuan.tengpicturebackend.exception.ThrowUtils;
-import lombok.extern.slf4j.Slf4j;
+import com.zhongyuan.tengpicturebackend.pictureSpace.exception.ErrorCode;
+import com.zhongyuan.tengpicturebackend.pictureSpace.exception.ThrowUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 

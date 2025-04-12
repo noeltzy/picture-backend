@@ -1,4 +1,4 @@
-package com.zhongyuan.tengpicturebackend.config;
+package com.zhongyuan.tengpicturebackend.common.config;
 
 
 import com.qcloud.cos.COSClient;

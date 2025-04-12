@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.zhongyuan.tengpicturebackend.vip.mapper.VipOrderMapper">
+
+    <resultMap id="BaseResultMap" type="com.zhongyuan.tengpicturebackend.vip.model.entity.VipOrder">
+            <id property="id" column="id" />
+            <result property="userId" column="userId" />
+            <result property="orderNo" column="orderNo" />
+            <result property="vipLevel" column="vipLevel" />
+            <result property="amount" column="amount" />
+            <result property="payStatus" column="payStatus" />
+            <result property="payTime" column="payTime" />
+             <result property="remark" column="remark" />
+            <result property="createTime" column="createTime" />
+            <result property="updateTime" column="updateTime" />
+            <result property="isDelete" column="isDelete" />
+    </resultMap>
+
+    <sql id="Base_Column_List">
+        id,userId,orderNo,vipLevel,amount,payStatus,
+        payTime,remark,createTime,updateTime,isDelete
+    </sql>
+</mapper>

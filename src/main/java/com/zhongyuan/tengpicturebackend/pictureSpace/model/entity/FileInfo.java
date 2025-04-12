@@ -7,7 +7,7 @@ import com.baomidou.mybatisplus.annotation.TableName;
 import java.util.Date;
 
 import com.zhongyuan.tengpicturebackend.pictureSpace.model.dto.file.PictureUploadResult;
-import com.zhongyuan.tengpicturebackend.pictureSpace.utils.picture.PathChangeUtils;
+import com.zhongyuan.tengpicturebackend.common.utils.picture.PathChangeUtils;
 import lombok.Data;
 
 /**

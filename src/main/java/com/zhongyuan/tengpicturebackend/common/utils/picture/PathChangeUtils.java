@@ -1,4 +1,4 @@
-package com.zhongyuan.tengpicturebackend.pictureSpace.utils.picture;
+package com.zhongyuan.tengpicturebackend.common.utils.picture;
 
 import cn.hutool.core.io.FileUtil;
 import cn.hutool.core.util.StrUtil;

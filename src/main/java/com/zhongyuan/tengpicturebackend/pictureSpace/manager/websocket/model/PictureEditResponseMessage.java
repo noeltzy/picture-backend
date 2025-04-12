@@ -1,4 +1,4 @@
-package com.zhongyuan.tengpicturebackend.manager.websocket.model;
+package com.zhongyuan.tengpicturebackend.pictureSpace.manager.websocket.model;
 
 import com.zhongyuan.tengpicturebackend.pictureSpace.model.vo.UserVo;
 import lombok.AllArgsConstructor;

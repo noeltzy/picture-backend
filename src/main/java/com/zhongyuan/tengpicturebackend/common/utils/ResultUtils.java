@@ -1,6 +1,7 @@
-package com.zhongyuan.tengpicturebackend.common;
+package com.zhongyuan.tengpicturebackend.common.utils;
 
-import com.zhongyuan.tengpicturebackend.exception.ErrorCode;
+import com.zhongyuan.tengpicturebackend.common.model.BaseResponse;
+import com.zhongyuan.tengpicturebackend.pictureSpace.exception.ErrorCode;
 
 import java.io.Serializable;
 

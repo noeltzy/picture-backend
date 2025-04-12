@@ -1,10 +1,10 @@
-package com.zhongyuan.tengpicturebackend.controller;
+package com.zhongyuan.tengpicturebackend.pictureSpace.controller;
 
 
-import com.zhongyuan.tengpicturebackend.annotation.AuthCheck;
-import com.zhongyuan.tengpicturebackend.common.BaseResponse;
-import com.zhongyuan.tengpicturebackend.common.ResultUtils;
-import com.zhongyuan.tengpicturebackend.constant.UserConstant;
+import com.zhongyuan.tengpicturebackend.common.annotation.AuthCheck;
+import com.zhongyuan.tengpicturebackend.common.model.BaseResponse;
+import com.zhongyuan.tengpicturebackend.common.utils.ResultUtils;
+import com.zhongyuan.tengpicturebackend.pictureSpace.constant.UserConstant;
 import com.zhongyuan.tengpicturebackend.pictureSpace.model.dto.space.analyze.SpaceCategoryAnalyzeRequest;
 import com.zhongyuan.tengpicturebackend.pictureSpace.model.dto.space.analyze.SpaceTagAnalyzeRequest;
 import com.zhongyuan.tengpicturebackend.pictureSpace.model.dto.space.analyze.SpaceUsageAnalyzeRequest;

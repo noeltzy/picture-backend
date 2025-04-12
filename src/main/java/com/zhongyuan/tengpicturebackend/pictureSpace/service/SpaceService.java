@@ -1,16 +1,13 @@
-package com.zhongyuan.tengpicturebackend.service;
+package com.zhongyuan.tengpicturebackend.pictureSpace.service;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
-import com.zhongyuan.tengpicturebackend.model.dto.picture.PictureQueryRequest;
-import com.zhongyuan.tengpicturebackend.model.dto.space.SpaceAddRequest;
-import com.zhongyuan.tengpicturebackend.model.dto.space.SpaceQueryRequest;
-import com.zhongyuan.tengpicturebackend.model.entity.Picture;
-import com.zhongyuan.tengpicturebackend.model.entity.Space;
+import com.zhongyuan.tengpicturebackend.pictureSpace.model.dto.space.SpaceAddRequest;
+import com.zhongyuan.tengpicturebackend.pictureSpace.model.dto.space.SpaceQueryRequest;
+import com.zhongyuan.tengpicturebackend.pictureSpace.model.entity.Space;
 import com.baomidou.mybatisplus.extension.service.IService;
-import com.zhongyuan.tengpicturebackend.model.entity.User;
-import com.zhongyuan.tengpicturebackend.model.enums.SpaceRoleEnum;
-import com.zhongyuan.tengpicturebackend.model.vo.PictureVo;
-import com.zhongyuan.tengpicturebackend.model.vo.SpaceVO;
+import com.zhongyuan.tengpicturebackend.pictureSpace.model.entity.User;
+import com.zhongyuan.tengpicturebackend.pictureSpace.model.enums.SpaceRoleEnum;
+import com.zhongyuan.tengpicturebackend.pictureSpace.model.vo.SpaceVO;
 
 import javax.servlet.http.HttpServletRequest;
 import java.util.List;

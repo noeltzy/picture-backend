@@ -43,4 +43,39 @@ public class ImageGenTask {
      * 用户ID
      */
     private Long userId;
+
+    /**
+     * 本次任务消耗的token数量
+     */
+    private Integer tokensUsed;
+
+    /**
+     * VIP等级：0-免费用户 1-VIP1 2-VIP2 3-VIP3
+     */
+    private Long userVipId;
+
+    /**
+     * 任务类型：0-生成图片 1-编辑图片
+     */
+    private Integer taskType;
+
+    /**
+     * 错误信息
+     */
+    private String errorMessage;
+
+    /**
+     * token是否已退还：0-未退还 1-已退还 2-无需退还
+     */
+    private Integer tokenRefunded;
+
+    /**
+     * token退还时间
+     */
+    private Date refundTime;
+
+    /**
+     * 退还备注
+     */
+    private String refundRemark;
 }

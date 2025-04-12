@@ -1,4 +1,4 @@
-package com.zhongyuan.tengpicturebackend.manager.api.aliyunai.config;
+package com.zhongyuan.tengpicturebackend.pictureSpace.manager.api.aliyunai.config;
 
 
 import dev.langchain4j.community.model.dashscope.QwenChatModel;

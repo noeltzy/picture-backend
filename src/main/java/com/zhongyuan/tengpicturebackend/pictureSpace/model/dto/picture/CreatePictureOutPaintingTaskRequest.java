@@ -1,6 +1,6 @@
 package com.zhongyuan.tengpicturebackend.pictureSpace.model.dto.picture;
 
-import com.zhongyuan.tengpicturebackend.manager.api.aliyunai.model.outPainting.CreateOutPaintingTaskRequest;
+import com.zhongyuan.tengpicturebackend.pictureSpace.manager.api.aliyunai.model.outPainting.CreateOutPaintingTaskRequest;
 import lombok.Data;
 
 import java.io.Serializable;

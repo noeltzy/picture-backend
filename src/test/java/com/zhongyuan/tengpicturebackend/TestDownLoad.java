@@ -1,9 +1,12 @@
 package com.zhongyuan.tengpicturebackend;
 
+import cn.hutool.core.date.DateUtil;
 import cn.hutool.http.HttpUtil;
+import org.jsoup.helper.DataUtil;
 import org.junit.jupiter.api.Test;
 
 import java.net.URL;
+import java.util.Date;
 
 //普通test类
 
@@ -14,5 +17,12 @@ public class TestDownLoad {
         HttpUtil.downloadFile(uil,"./d");
         new Thread();
 
+    }
+
+
+    @Test
+    void testDownLoad2() {
+        Date data = DateUtil.date();
+        System.out.println(data);
     }
 }

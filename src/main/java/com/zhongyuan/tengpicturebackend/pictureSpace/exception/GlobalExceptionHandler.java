@@ -1,9 +1,9 @@
-package com.zhongyuan.tengpicturebackend.exception;
+package com.zhongyuan.tengpicturebackend.pictureSpace.exception;
 
 
 
-import com.zhongyuan.tengpicturebackend.common.BaseResponse;
-import com.zhongyuan.tengpicturebackend.common.ResultUtils;
+import com.zhongyuan.tengpicturebackend.common.model.BaseResponse;
+import com.zhongyuan.tengpicturebackend.common.utils.ResultUtils;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;

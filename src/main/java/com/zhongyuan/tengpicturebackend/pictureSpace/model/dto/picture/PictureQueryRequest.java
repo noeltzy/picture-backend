@@ -1,6 +1,6 @@
 package com.zhongyuan.tengpicturebackend.pictureSpace.model.dto.picture;
 
-import com.zhongyuan.tengpicturebackend.common.PageRequest;
+import com.zhongyuan.tengpicturebackend.common.model.PageRequest;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 

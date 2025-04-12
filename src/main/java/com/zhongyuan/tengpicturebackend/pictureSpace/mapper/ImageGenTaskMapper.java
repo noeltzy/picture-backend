@@ -1,7 +1,11 @@
-package com.zhongyuan.tengpicturebackend.mapper;
+package com.zhongyuan.tengpicturebackend.pictureSpace.mapper;
 
 import com.zhongyuan.tengpicturebackend.pictureSpace.model.entity.ImageGenTask;
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
+import org.apache.ibatis.annotations.Param;
+import org.apache.ibatis.annotations.Update;
+
+import java.util.Date;
 
 /**
 * @author Windows11

@@ -1,12 +1,12 @@
-package com.zhongyuan.tengpicturebackend.controller;
+package com.zhongyuan.tengpicturebackend.pictureSpace.controller;
 
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
-import com.zhongyuan.tengpicturebackend.common.BaseResponse;
-import com.zhongyuan.tengpicturebackend.common.ResultUtils;
-import com.zhongyuan.tengpicturebackend.exception.BusinessException;
-import com.zhongyuan.tengpicturebackend.exception.ErrorCode;
-import com.zhongyuan.tengpicturebackend.exception.ThrowUtils;
+import com.zhongyuan.tengpicturebackend.common.model.BaseResponse;
+import com.zhongyuan.tengpicturebackend.common.utils.ResultUtils;
+import com.zhongyuan.tengpicturebackend.pictureSpace.exception.BusinessException;
+import com.zhongyuan.tengpicturebackend.pictureSpace.exception.ErrorCode;
+import com.zhongyuan.tengpicturebackend.pictureSpace.exception.ThrowUtils;
 import com.zhongyuan.tengpicturebackend.pictureSpace.model.dto.spaceUser.SpaceUserAddRequest;
 import com.zhongyuan.tengpicturebackend.pictureSpace.model.entity.Space;
 import com.zhongyuan.tengpicturebackend.pictureSpace.model.entity.SpaceUser;

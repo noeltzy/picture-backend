@@ -1,15 +1,15 @@
-package com.zhongyuan.tengpicturebackend.manager.websocket;
+package com.zhongyuan.tengpicturebackend.pictureSpace.manager.websocket;
 
 import cn.hutool.core.collection.CollUtil;
 import cn.hutool.json.JSONUtil;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.module.SimpleModule;
 import com.fasterxml.jackson.databind.ser.std.ToStringSerializer;
-import com.zhongyuan.tengpicturebackend.manager.websocket.disruptor.PictureEditEventProducer;
-import com.zhongyuan.tengpicturebackend.manager.websocket.model.PictureEditActionEnum;
-import com.zhongyuan.tengpicturebackend.manager.websocket.model.PictureEditMessageTypeEnum;
-import com.zhongyuan.tengpicturebackend.manager.websocket.model.PictureEditRequestMessage;
-import com.zhongyuan.tengpicturebackend.manager.websocket.model.PictureEditResponseMessage;
+import com.zhongyuan.tengpicturebackend.pictureSpace.manager.websocket.disruptor.PictureEditEventProducer;
+import com.zhongyuan.tengpicturebackend.pictureSpace.manager.websocket.model.PictureEditActionEnum;
+import com.zhongyuan.tengpicturebackend.pictureSpace.manager.websocket.model.PictureEditMessageTypeEnum;
+import com.zhongyuan.tengpicturebackend.pictureSpace.manager.websocket.model.PictureEditRequestMessage;
+import com.zhongyuan.tengpicturebackend.pictureSpace.manager.websocket.model.PictureEditResponseMessage;
 import com.zhongyuan.tengpicturebackend.pictureSpace.model.entity.User;
 import com.zhongyuan.tengpicturebackend.pictureSpace.model.vo.UserVo;
 import com.zhongyuan.tengpicturebackend.pictureSpace.service.UserService;

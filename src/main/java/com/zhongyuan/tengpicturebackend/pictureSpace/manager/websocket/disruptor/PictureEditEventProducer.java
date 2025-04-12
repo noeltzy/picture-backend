@@ -1,8 +1,8 @@
-package com.zhongyuan.tengpicturebackend.manager.websocket.disruptor;
+package com.zhongyuan.tengpicturebackend.pictureSpace.manager.websocket.disruptor;
 
 import com.lmax.disruptor.RingBuffer;
 import com.lmax.disruptor.dsl.Disruptor;
-import com.zhongyuan.tengpicturebackend.manager.websocket.model.PictureEditRequestMessage;
+import com.zhongyuan.tengpicturebackend.pictureSpace.manager.websocket.model.PictureEditRequestMessage;
 import com.zhongyuan.tengpicturebackend.pictureSpace.model.entity.User;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;

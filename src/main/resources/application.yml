@@ -1,4 +1,5 @@
 spring:
+
   session:
     store-type: redis
     timeout: 172800
@@ -46,7 +47,8 @@ knife4j:
       default:
         api-rule: package
         api-rule-resources:
-          - com.zhongyuan.tengpicturebackend.controller
+          - com.zhongyuan.tengpicturebackend.pictureSpace.controller
+          - com.zhongyuan.tengpicturebackend.vip.controller
 
 logging:
   level:

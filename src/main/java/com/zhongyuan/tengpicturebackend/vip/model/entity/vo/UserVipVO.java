@@ -1,10 +1,13 @@
-package com.zhongyuan.tengpicturebackend.vip.model.entity;
+package com.zhongyuan.tengpicturebackend.vip.model.entity.vo;
 
 import com.baomidou.mybatisplus.annotation.IdType;
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
-import java.util.Date;
+import com.zhongyuan.tengpicturebackend.vip.model.entity.UserVip;
 import lombok.Data;
+import org.springframework.beans.BeanUtils;
+
+import java.util.Date;
 
 /**
  * 用户VIP表
@@ -12,7 +15,7 @@ import lombok.Data;
  */
 @TableName(value ="user_vip")
 @Data
-public class UserVip {
+public class UserVipVO {
     /**
      * id
      */
@@ -59,23 +62,11 @@ public class UserVip {
      */
     private Integer status;
 
-    /**
-     * 创建时间
-     */
-    private Date createTime;
 
-    /**
-     * 订单号(固定20位)
-     */
-    private String orderNo;
+    public  static UserVipVO convert(UserVip userVip){
+        UserVipVO userVipVO = new UserVipVO();
+        BeanUtils.copyProperties(userVip,userVipVO);
+        return userVipVO;
+    }
 
-    /**
-     * 更新时间
-     */
-    private Date updateTime;
-
-    /**
-     * 是否删除
-     */
-    private Integer isDelete;
 }

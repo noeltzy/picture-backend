@@ -1,4 +1,4 @@
-package com.zhongyuan.tengpicturebackend.manager.cos.upload;
+package com.zhongyuan.tengpicturebackend.pictureSpace.manager.cos.upload;
 
 import cn.hutool.core.collection.CollUtil;
 import cn.hutool.core.date.DateUtil;
@@ -12,11 +12,11 @@ import com.qcloud.cos.model.PutObjectResult;
 import com.qcloud.cos.model.ciModel.persistence.CIObject;
 import com.qcloud.cos.model.ciModel.persistence.ImageInfo;
 import com.qcloud.cos.model.ciModel.persistence.ProcessResults;
-import com.zhongyuan.tengpicturebackend.config.CosConfig;
-import com.zhongyuan.tengpicturebackend.exception.BusinessException;
-import com.zhongyuan.tengpicturebackend.exception.ErrorCode;
-import com.zhongyuan.tengpicturebackend.exception.ThrowUtils;
-import com.zhongyuan.tengpicturebackend.manager.cos.CosManager;
+import com.zhongyuan.tengpicturebackend.common.config.CosConfig;
+import com.zhongyuan.tengpicturebackend.pictureSpace.exception.BusinessException;
+import com.zhongyuan.tengpicturebackend.pictureSpace.exception.ErrorCode;
+import com.zhongyuan.tengpicturebackend.pictureSpace.exception.ThrowUtils;
+import com.zhongyuan.tengpicturebackend.pictureSpace.manager.cos.CosManager;
 import com.zhongyuan.tengpicturebackend.pictureSpace.model.dto.file.PictureUploadResult;
 import com.zhongyuan.tengpicturebackend.pictureSpace.model.entity.FileInfo;
 import com.zhongyuan.tengpicturebackend.pictureSpace.service.FileInfoService;

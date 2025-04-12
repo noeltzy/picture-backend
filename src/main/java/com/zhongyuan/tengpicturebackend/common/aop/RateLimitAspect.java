@@ -1,10 +1,10 @@
-package com.zhongyuan.tengpicturebackend.aop;
+package com.zhongyuan.tengpicturebackend.common.aop;
 
 
-import com.zhongyuan.tengpicturebackend.annotation.RequestLimit;
-import com.zhongyuan.tengpicturebackend.exception.BusinessException;
-import com.zhongyuan.tengpicturebackend.exception.ErrorCode;
-import com.zhongyuan.tengpicturebackend.exception.ThrowUtils;
+import com.zhongyuan.tengpicturebackend.common.annotation.RequestLimit;
+import com.zhongyuan.tengpicturebackend.pictureSpace.exception.BusinessException;
+import com.zhongyuan.tengpicturebackend.pictureSpace.exception.ErrorCode;
+import com.zhongyuan.tengpicturebackend.pictureSpace.exception.ThrowUtils;
 import com.zhongyuan.tengpicturebackend.pictureSpace.model.entity.User;
 import com.zhongyuan.tengpicturebackend.pictureSpace.service.UserService;
 import lombok.extern.slf4j.Slf4j;

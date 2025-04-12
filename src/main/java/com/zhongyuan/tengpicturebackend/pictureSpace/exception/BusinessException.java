@@ -1,4 +1,4 @@
-package com.zhongyuan.tengpicturebackend.exception;
+package com.zhongyuan.tengpicturebackend.pictureSpace.exception;
 import lombok.Getter;
 
 /**

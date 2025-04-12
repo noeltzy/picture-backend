@@ -1,4 +1,4 @@
-package com.zhongyuan.tengpicturebackend.common;
+package com.zhongyuan.tengpicturebackend.common.model;
 
 import lombok.Data;
 @Data

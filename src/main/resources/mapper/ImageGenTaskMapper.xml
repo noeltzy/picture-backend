@@ -2,18 +2,27 @@
 <!DOCTYPE mapper
         PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
         "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
-<mapper namespace="com.zhongyuan.tengpicturebackend.mapper.ImageGenTaskMapper">
+<mapper namespace="com.zhongyuan.tengpicturebackend.pictureSpace.mapper.ImageGenTaskMapper">
 
-    <resultMap id="BaseResultMap" type="com.zhongyuan.tengpicturebackend.model.entity.ImageGenTask">
-            <id property="taskId" column="taskId" />
-            <result property="startTime" column="startTime" />
-            <result property="endTime" column="endTime" />
-            <result property="url" column="url" />
-            <result property="status" column="status" />
-            <result property="userId" column="userId" />
+    <resultMap id="BaseResultMap" type="com.zhongyuan.tengpicturebackend.pictureSpace.model.entity.ImageGenTask">
+        <id property="taskId" column="taskId" />
+        <result property="startTime" column="startTime" />
+        <result property="endTime" column="endTime" />
+        <result property="url" column="url" />
+        <result property="status" column="status" />
+        <result property="userId" column="userId" />
+        <result property="tokensUsed" column="tokensUsed" />
+        <result property="userVipId" column="userVipId" />
+        <result property="taskType" column="taskType" />
+        <result property="errorMessage" column="errorMessage" />
+        <result property="tokenRefunded" column="tokenRefunded" />
+        <result property="refundTime" column="refundTime" />
+        <result property="refundRemark" column="refundRemark" />
     </resultMap>
 
     <sql id="Base_Column_List">
-        taskId,startTime,endTime,url,status,userId
+        taskId,startTime,endTime,url,status,userId,
+        tokensUsed,userVipId,taskType,errorMessage,tokenRefunded,
+        refundTime,refundRemark
     </sql>
 </mapper>

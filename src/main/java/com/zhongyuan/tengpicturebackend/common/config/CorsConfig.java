@@ -1,4 +1,4 @@
-package com.zhongyuan.tengpicturebackend.config;
+package com.zhongyuan.tengpicturebackend.common.config;
 
 import org.springframework.context.annotation.Configuration;
 import org.springframework.web.servlet.config.annotation.CorsRegistry;

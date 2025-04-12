@@ -1,8 +1,8 @@
-package com.zhongyuan.tengpicturebackend.service;
+package com.zhongyuan.tengpicturebackend.pictureSpace.service;
 
 import com.baomidou.mybatisplus.extension.service.IService;
-import com.zhongyuan.tengpicturebackend.model.dto.file.PictureUploadResult;
-import com.zhongyuan.tengpicturebackend.model.entity.FileInfo;
+import com.zhongyuan.tengpicturebackend.pictureSpace.model.dto.file.PictureUploadResult;
+import com.zhongyuan.tengpicturebackend.pictureSpace.model.entity.FileInfo;
 
 import java.io.File;
 

@@ -1,4 +1,4 @@
-package com.zhongyuan.tengpicturebackend.manager.cos.upload;
+package com.zhongyuan.tengpicturebackend.pictureSpace.manager.cos.upload;
 
 import cn.hutool.core.io.file.FileNameUtil;
 import cn.hutool.core.util.StrUtil;
@@ -6,10 +6,9 @@ import cn.hutool.http.HttpResponse;
 import cn.hutool.http.HttpStatus;
 import cn.hutool.http.HttpUtil;
 import cn.hutool.http.Method;
-import com.zhongyuan.tengpicturebackend.exception.BusinessException;
-import com.zhongyuan.tengpicturebackend.exception.ErrorCode;
-import com.zhongyuan.tengpicturebackend.exception.ThrowUtils;
-import lombok.extern.slf4j.Slf4j;
+import com.zhongyuan.tengpicturebackend.pictureSpace.exception.BusinessException;
+import com.zhongyuan.tengpicturebackend.pictureSpace.exception.ErrorCode;
+import com.zhongyuan.tengpicturebackend.pictureSpace.exception.ThrowUtils;
 import org.springframework.stereotype.Service;
 
 import java.io.File;

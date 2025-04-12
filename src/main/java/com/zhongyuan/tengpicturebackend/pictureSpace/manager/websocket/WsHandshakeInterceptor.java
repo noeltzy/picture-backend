@@ -1,4 +1,4 @@
-package com.zhongyuan.tengpicturebackend.manager.websocket;
+package com.zhongyuan.tengpicturebackend.pictureSpace.manager.websocket;
 
 import cn.hutool.core.util.ObjUtil;
 import cn.hutool.core.util.StrUtil;

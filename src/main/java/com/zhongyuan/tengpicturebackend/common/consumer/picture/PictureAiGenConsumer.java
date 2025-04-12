@@ -1,7 +1,7 @@
-package com.zhongyuan.tengpicturebackend.common.comsumer.picture;
+package com.zhongyuan.tengpicturebackend.common.consumer.picture;
 
 
-import com.zhongyuan.tengpicturebackend.common.comsumer.PictureTask.PictureGenTaskManager;
+import com.zhongyuan.tengpicturebackend.common.consumer.PictureTask.PictureGenTaskManager;
 import com.zhongyuan.tengpicturebackend.common.message.PictureAiMessage;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.amqp.core.ExchangeTypes;

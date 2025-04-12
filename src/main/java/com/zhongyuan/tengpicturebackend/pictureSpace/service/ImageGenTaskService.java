@@ -1,6 +1,6 @@
-package com.zhongyuan.tengpicturebackend.service;
+package com.zhongyuan.tengpicturebackend.pictureSpace.service;
 
-import com.zhongyuan.tengpicturebackend.model.entity.ImageGenTask;
+import com.zhongyuan.tengpicturebackend.pictureSpace.model.entity.ImageGenTask;
 import com.baomidou.mybatisplus.extension.service.IService;
 
 /**
@@ -10,4 +10,8 @@ import com.baomidou.mybatisplus.extension.service.IService;
 */
 public interface ImageGenTaskService extends IService<ImageGenTask> {
 
+    void updateTaskToFailed(ImageGenTask task);
+    void updateTaskToRunning(ImageGenTask task);
+
+    void markTokenRefunded(ImageGenTask task);
 }

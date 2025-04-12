@@ -1,4 +1,4 @@
-package com.zhongyuan.tengpicturebackend.annotation;
+package com.zhongyuan.tengpicturebackend.common.annotation;
 
 
 import java.lang.annotation.ElementType;

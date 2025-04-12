@@ -1,4 +1,4 @@
-package com.zhongyuan.tengpicturebackend.manager.api.aliyunai.model.genPicture;
+package com.zhongyuan.tengpicturebackend.pictureSpace.manager.api.aliyunai.model.genPicture;
 
 import lombok.Data;
 import java.util.List;

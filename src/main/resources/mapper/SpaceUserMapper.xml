@@ -2,9 +2,9 @@
 <!DOCTYPE mapper
         PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
         "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
-<mapper namespace="com.zhongyuan.tengpicturebackend.mapper.SpaceUserMapper">
+<mapper namespace="com.zhongyuan.tengpicturebackend.pictureSpace.mapper.SpaceUserMapper">
 
-    <resultMap id="BaseResultMap" type="com.zhongyuan.tengpicturebackend.model.entity.SpaceUser">
+    <resultMap id="BaseResultMap" type="com.zhongyuan.tengpicturebackend.pictureSpace.model.entity.SpaceUser">
             <id property="id" column="id" />
             <result property="spaceId" column="spaceId" />
             <result property="userId" column="userId" />
@@ -16,7 +16,7 @@
         id,spaceId,userId,spaceRole,createTime,updateTime
     </sql>
     <!-- 查询空间成员信息，返回 Map 格式 -->
-    <select id="getSpaceMembers" resultType="com.zhongyuan.tengpicturebackend.model.vo.SpaceMemberVo">
+    <select id="getSpaceMembers" resultType="com.zhongyuan.tengpicturebackend.pictureSpace.model.vo.SpaceMemberVo">
         SELECT su.userId , u.userAvatar AS userAvatar, su.spaceRole
         FROM space_user su
                  JOIN user u ON su.userId = u.id

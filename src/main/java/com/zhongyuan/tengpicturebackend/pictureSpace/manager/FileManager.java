@@ -1,4 +1,4 @@
-package com.zhongyuan.tengpicturebackend.manager;
+package com.zhongyuan.tengpicturebackend.pictureSpace.manager;
 
 import cn.hutool.core.date.DateUtil;
 import cn.hutool.core.io.FileUtil;
@@ -6,11 +6,11 @@ import cn.hutool.core.util.NumberUtil;
 import cn.hutool.core.util.RandomUtil;
 import com.qcloud.cos.model.PutObjectResult;
 import com.qcloud.cos.model.ciModel.persistence.ImageInfo;
-import com.zhongyuan.tengpicturebackend.config.CosConfig;
-import com.zhongyuan.tengpicturebackend.exception.BusinessException;
-import com.zhongyuan.tengpicturebackend.exception.ErrorCode;
-import com.zhongyuan.tengpicturebackend.exception.ThrowUtils;
-import com.zhongyuan.tengpicturebackend.manager.cos.CosManager;
+import com.zhongyuan.tengpicturebackend.common.config.CosConfig;
+import com.zhongyuan.tengpicturebackend.pictureSpace.exception.BusinessException;
+import com.zhongyuan.tengpicturebackend.pictureSpace.exception.ErrorCode;
+import com.zhongyuan.tengpicturebackend.pictureSpace.exception.ThrowUtils;
+import com.zhongyuan.tengpicturebackend.pictureSpace.manager.cos.CosManager;
 import com.zhongyuan.tengpicturebackend.pictureSpace.model.dto.file.PictureUploadResult;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;

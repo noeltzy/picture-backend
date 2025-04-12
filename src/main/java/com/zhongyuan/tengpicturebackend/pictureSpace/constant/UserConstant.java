@@ -1,4 +1,4 @@
-package com.zhongyuan.tengpicturebackend.constant;
+package com.zhongyuan.tengpicturebackend.pictureSpace.constant;
 
 /**
  * 用户常量

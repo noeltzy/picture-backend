@@ -1,12 +1,12 @@
-package com.zhongyuan.tengpicturebackend.service;
+package com.zhongyuan.tengpicturebackend.pictureSpace.service;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
-import com.zhongyuan.tengpicturebackend.model.dto.user.UserLoginRequest;
-import com.zhongyuan.tengpicturebackend.model.dto.user.UserQueryRequest;
-import com.zhongyuan.tengpicturebackend.model.dto.user.UserRegisterRequest;
-import com.zhongyuan.tengpicturebackend.model.entity.User;
+import com.zhongyuan.tengpicturebackend.pictureSpace.model.dto.user.UserLoginRequest;
+import com.zhongyuan.tengpicturebackend.pictureSpace.model.dto.user.UserQueryRequest;
+import com.zhongyuan.tengpicturebackend.pictureSpace.model.dto.user.UserRegisterRequest;
+import com.zhongyuan.tengpicturebackend.pictureSpace.model.entity.User;
 import com.baomidou.mybatisplus.extension.service.IService;
-import com.zhongyuan.tengpicturebackend.model.vo.LoginUserVo;
+import com.zhongyuan.tengpicturebackend.pictureSpace.model.vo.LoginUserVo;
 
 import javax.servlet.http.HttpServletRequest;
 
@@ -31,5 +31,7 @@ public interface UserService extends IService<User> {
     LambdaQueryWrapper<User> getQueryWrapper(UserQueryRequest userQueryRequest);
 
     boolean isAdmin(User loginUser);
+
+    User getLoginUserOrNoLogin(HttpServletRequest request);
 
 }

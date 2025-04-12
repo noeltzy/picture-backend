@@ -7,8 +7,8 @@ import org.springframework.context.annotation.EnableAspectJAutoProxy;
 import org.springframework.scheduling.annotation.EnableAsync;
 
 @SpringBootApplication
-@MapperScan("com.zhongyuan.tengpicturebackend.mapper")
-@EnableAspectJAutoProxy(proxyTargetClass=true)
+@MapperScan("com.zhongyuan.tengpicturebackend.pictureSpace.mapper")
+@MapperScan("com.zhongyuan.tengpicturebackend.vip.mapper")
 @EnableAsync
 public class TengPictureBackendApplication {
 

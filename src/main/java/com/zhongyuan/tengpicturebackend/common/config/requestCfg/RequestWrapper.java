@@ -1,4 +1,4 @@
-package com.zhongyuan.tengpicturebackend.config.requestCfg;
+package com.zhongyuan.tengpicturebackend.common.config.requestCfg;
 
 import lombok.extern.slf4j.Slf4j;
 

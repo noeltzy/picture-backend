@@ -2,9 +2,9 @@
 <!DOCTYPE mapper
         PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
         "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
-<mapper namespace="com.zhongyuan.tengpicturebackend.mapper.FileInfoMapper">
+<mapper namespace="com.zhongyuan.tengpicturebackend.pictureSpace.mapper.FileInfoMapper">
 
-    <resultMap id="BaseResultMap" type="com.zhongyuan.tengpicturebackend.model.entity.FileInfo">
+    <resultMap id="BaseResultMap" type="com.zhongyuan.tengpicturebackend.pictureSpace.model.entity.FileInfo">
             <id property="id" column="id" />
             <result property="fileName" column="fileName" />
             <result property="fileSize" column="fileSize" />

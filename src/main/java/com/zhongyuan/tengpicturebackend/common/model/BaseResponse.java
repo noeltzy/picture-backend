@@ -1,8 +1,8 @@
-package com.zhongyuan.tengpicturebackend.common;
+package com.zhongyuan.tengpicturebackend.common.model;
 
 import java.io.Serializable;
 
-import com.zhongyuan.tengpicturebackend.exception.ErrorCode;
+import com.zhongyuan.tengpicturebackend.pictureSpace.exception.ErrorCode;
 import lombok.Data;
 
 /**

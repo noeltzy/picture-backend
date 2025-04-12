@@ -1,4 +1,4 @@
-package com.zhongyuan.tengpicturebackend.config;
+package com.zhongyuan.tengpicturebackend.common.config;
 
 import com.baomidou.mybatisplus.annotation.DbType;
 import com.baomidou.mybatisplus.extension.plugins.MybatisPlusInterceptor;

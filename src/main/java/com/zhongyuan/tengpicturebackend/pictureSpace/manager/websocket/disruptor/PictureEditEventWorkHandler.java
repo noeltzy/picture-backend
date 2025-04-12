@@ -1,9 +1,9 @@
-package com.zhongyuan.tengpicturebackend.manager.websocket.disruptor;
+package com.zhongyuan.tengpicturebackend.pictureSpace.manager.websocket.disruptor;
 
 import com.lmax.disruptor.WorkHandler;
-import com.zhongyuan.tengpicturebackend.manager.websocket.WsPictureEditHandler;
-import com.zhongyuan.tengpicturebackend.manager.websocket.model.PictureEditMessageTypeEnum;
-import com.zhongyuan.tengpicturebackend.manager.websocket.model.PictureEditRequestMessage;
+import com.zhongyuan.tengpicturebackend.pictureSpace.manager.websocket.WsPictureEditHandler;
+import com.zhongyuan.tengpicturebackend.pictureSpace.manager.websocket.model.PictureEditMessageTypeEnum;
+import com.zhongyuan.tengpicturebackend.pictureSpace.manager.websocket.model.PictureEditRequestMessage;
 import com.zhongyuan.tengpicturebackend.pictureSpace.service.UserService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.Lazy;

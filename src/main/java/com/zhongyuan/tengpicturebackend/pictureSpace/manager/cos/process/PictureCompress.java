@@ -1,13 +1,13 @@
-package com.zhongyuan.tengpicturebackend.manager.cos.process;
+package com.zhongyuan.tengpicturebackend.pictureSpace.manager.cos.process;
 
 import com.qcloud.cos.COSClient;
 import com.qcloud.cos.model.ciModel.common.ImageProcessRequest;
 import com.qcloud.cos.model.ciModel.persistence.CIUploadResult;
 import com.qcloud.cos.model.ciModel.persistence.PicOperations;
-import com.zhongyuan.tengpicturebackend.config.CosConfig;
-import com.zhongyuan.tengpicturebackend.message.PictureProcessMessage;
-import com.zhongyuan.tengpicturebackend.pictureSpace.utils.picture.PictureProcessRuleEnum;
-import com.zhongyuan.tengpicturebackend.pictureSpace.utils.picture.PictureProcessUtils;
+import com.zhongyuan.tengpicturebackend.common.config.CosConfig;
+import com.zhongyuan.tengpicturebackend.common.message.PictureProcessMessage;
+import com.zhongyuan.tengpicturebackend.common.utils.picture.PictureProcessRuleEnum;
+import com.zhongyuan.tengpicturebackend.common.utils.picture.PictureProcessUtils;
 import org.springframework.stereotype.Component;
 
 import javax.annotation.Resource;

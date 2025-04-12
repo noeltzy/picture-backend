@@ -1,4 +1,4 @@
-package com.zhongyuan.tengpicturebackend.message;
+package com.zhongyuan.tengpicturebackend.common.message;
 
 
 import lombok.Data;
@@ -13,5 +13,7 @@ public class PictureAiMessage implements Serializable {
     Long UserId;
     Long SpaceId;
     String prompt;
-    String taskType;
+    int taskType;
+    // 用于恢复
+    Long UserVipId;
 }

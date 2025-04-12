@@ -1,6 +1,6 @@
-package com.zhongyuan.tengpicturebackend.manager.websocket.disruptor;
+package com.zhongyuan.tengpicturebackend.pictureSpace.manager.websocket.disruptor;
 
-import com.zhongyuan.tengpicturebackend.manager.websocket.model.PictureEditRequestMessage;
+import com.zhongyuan.tengpicturebackend.pictureSpace.manager.websocket.model.PictureEditRequestMessage;
 import com.zhongyuan.tengpicturebackend.pictureSpace.model.entity.User;
 import lombok.Data;
 import org.springframework.web.socket.WebSocketSession;

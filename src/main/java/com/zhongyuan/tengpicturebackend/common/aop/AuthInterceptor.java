@@ -1,9 +1,9 @@
-package com.zhongyuan.tengpicturebackend.aop;
+package com.zhongyuan.tengpicturebackend.common.aop;
 
 
-import com.zhongyuan.tengpicturebackend.annotation.AuthCheck;
-import com.zhongyuan.tengpicturebackend.exception.ErrorCode;
-import com.zhongyuan.tengpicturebackend.exception.ThrowUtils;
+import com.zhongyuan.tengpicturebackend.common.annotation.AuthCheck;
+import com.zhongyuan.tengpicturebackend.pictureSpace.exception.ErrorCode;
+import com.zhongyuan.tengpicturebackend.pictureSpace.exception.ThrowUtils;
 import com.zhongyuan.tengpicturebackend.pictureSpace.model.entity.User;
 import com.zhongyuan.tengpicturebackend.pictureSpace.model.enums.UserRoleEnum;
 import com.zhongyuan.tengpicturebackend.pictureSpace.service.UserService;

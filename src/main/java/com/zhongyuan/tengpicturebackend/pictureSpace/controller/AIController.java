@@ -1,20 +1,20 @@
-package com.zhongyuan.tengpicturebackend.controller;
+package com.zhongyuan.tengpicturebackend.pictureSpace.controller;
 
 
 import cn.hutool.core.util.ObjUtil;
 import cn.hutool.core.util.StrUtil;
-import com.zhongyuan.tengpicturebackend.annotation.RequestLimit;
+import com.zhongyuan.tengpicturebackend.common.annotation.RequestLimit;
 import com.zhongyuan.tengpicturebackend.pictureSpace.service.ImageGenTaskService;
 import com.zhongyuan.tengpicturebackend.pictureSpace.service.PictureAiService;
-import com.zhongyuan.tengpicturebackend.manager.api.aliyunai.model.common.CreateTaskResponse;
-import com.zhongyuan.tengpicturebackend.manager.api.aliyunai.model.genPicture.GenPictureRequest;
-import com.zhongyuan.tengpicturebackend.manager.api.aliyunai.model.genPicture.ImageGenerationResponse;
-import com.zhongyuan.tengpicturebackend.manager.api.aliyunai.model.outPainting.GetOutPaintingTaskResponse;
-import com.zhongyuan.tengpicturebackend.common.BaseResponse;
-import com.zhongyuan.tengpicturebackend.common.ResultUtils;
-import com.zhongyuan.tengpicturebackend.exception.BusinessException;
-import com.zhongyuan.tengpicturebackend.exception.ErrorCode;
-import com.zhongyuan.tengpicturebackend.exception.ThrowUtils;
+import com.zhongyuan.tengpicturebackend.pictureSpace.manager.api.aliyunai.model.common.CreateTaskResponse;
+import com.zhongyuan.tengpicturebackend.pictureSpace.manager.api.aliyunai.model.genPicture.GenPictureRequest;
+import com.zhongyuan.tengpicturebackend.pictureSpace.manager.api.aliyunai.model.genPicture.ImageGenerationResponse;
+import com.zhongyuan.tengpicturebackend.pictureSpace.manager.api.aliyunai.model.outPainting.GetOutPaintingTaskResponse;
+import com.zhongyuan.tengpicturebackend.common.model.BaseResponse;
+import com.zhongyuan.tengpicturebackend.common.utils.ResultUtils;
+import com.zhongyuan.tengpicturebackend.pictureSpace.exception.BusinessException;
+import com.zhongyuan.tengpicturebackend.pictureSpace.exception.ErrorCode;
+import com.zhongyuan.tengpicturebackend.pictureSpace.exception.ThrowUtils;
 import com.zhongyuan.tengpicturebackend.pictureSpace.model.dto.ai.GenPictureTaskRequest;
 import com.zhongyuan.tengpicturebackend.pictureSpace.model.dto.picture.CreatePictureOutPaintingTaskRequest;
 import com.zhongyuan.tengpicturebackend.pictureSpace.model.entity.ImageGenTask;

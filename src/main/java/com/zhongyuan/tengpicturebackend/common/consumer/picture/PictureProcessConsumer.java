@@ -1,4 +1,4 @@
-package com.zhongyuan.tengpicturebackend.common.comsumer.picture;
+package com.zhongyuan.tengpicturebackend.common.consumer.picture;
 
 
 import com.qcloud.cos.model.ciModel.persistence.CIObject;

@@ -1,13 +1,13 @@
-package com.zhongyuan.tengpicturebackend.controller;
+package com.zhongyuan.tengpicturebackend.pictureSpace.controller;
 
 
-import com.zhongyuan.tengpicturebackend.annotation.AuthCheck;
-import com.zhongyuan.tengpicturebackend.common.BaseResponse;
-import com.zhongyuan.tengpicturebackend.common.ResultUtils;
-import com.zhongyuan.tengpicturebackend.constant.UserConstant;
-import com.zhongyuan.tengpicturebackend.exception.BusinessException;
-import com.zhongyuan.tengpicturebackend.exception.ErrorCode;
-import com.zhongyuan.tengpicturebackend.manager.cos.CosManager;
+import com.zhongyuan.tengpicturebackend.common.annotation.AuthCheck;
+import com.zhongyuan.tengpicturebackend.common.model.BaseResponse;
+import com.zhongyuan.tengpicturebackend.common.utils.ResultUtils;
+import com.zhongyuan.tengpicturebackend.pictureSpace.constant.UserConstant;
+import com.zhongyuan.tengpicturebackend.pictureSpace.exception.BusinessException;
+import com.zhongyuan.tengpicturebackend.pictureSpace.exception.ErrorCode;
+import com.zhongyuan.tengpicturebackend.pictureSpace.manager.cos.CosManager;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;

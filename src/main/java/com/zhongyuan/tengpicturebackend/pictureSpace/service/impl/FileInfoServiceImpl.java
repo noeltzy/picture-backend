@@ -1,12 +1,12 @@
-package com.zhongyuan.tengpicturebackend.service.impl;
+package com.zhongyuan.tengpicturebackend.pictureSpace.service.impl;
 
 import cn.hutool.crypto.digest.DigestUtil;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
-import com.zhongyuan.tengpicturebackend.mapper.FileInfoMapper;
-import com.zhongyuan.tengpicturebackend.model.dto.file.PictureUploadResult;
-import com.zhongyuan.tengpicturebackend.model.entity.FileInfo;
-import com.zhongyuan.tengpicturebackend.service.FileInfoService;
+import com.zhongyuan.tengpicturebackend.pictureSpace.mapper.FileInfoMapper;
+import com.zhongyuan.tengpicturebackend.pictureSpace.model.dto.file.PictureUploadResult;
+import com.zhongyuan.tengpicturebackend.pictureSpace.model.entity.FileInfo;
+import com.zhongyuan.tengpicturebackend.pictureSpace.service.FileInfoService;
 import org.springframework.stereotype.Service;
 
 import java.io.File;

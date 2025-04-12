@@ -1,11 +1,11 @@
-package com.zhongyuan.tengpicturebackend.manager.cos;
+package com.zhongyuan.tengpicturebackend.pictureSpace.manager.cos;
 
 import cn.hutool.core.io.FileUtil;
 import com.qcloud.cos.COSClient;
 import com.qcloud.cos.model.PutObjectRequest;
 import com.qcloud.cos.model.PutObjectResult;
 import com.qcloud.cos.model.ciModel.persistence.PicOperations;
-import com.zhongyuan.tengpicturebackend.config.CosConfig;
+import com.zhongyuan.tengpicturebackend.common.config.CosConfig;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 

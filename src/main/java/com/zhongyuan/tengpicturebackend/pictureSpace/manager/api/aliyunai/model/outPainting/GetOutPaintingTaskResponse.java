@@ -1,4 +1,4 @@
-package com.zhongyuan.tengpicturebackend.manager.api.aliyunai.model.outPainting;
+package com.zhongyuan.tengpicturebackend.pictureSpace.manager.api.aliyunai.model.outPainting;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;

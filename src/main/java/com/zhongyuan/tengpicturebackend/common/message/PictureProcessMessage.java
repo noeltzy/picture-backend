@@ -1,6 +1,6 @@
-package com.zhongyuan.tengpicturebackend.message;
+package com.zhongyuan.tengpicturebackend.common.message;
 
-import com.zhongyuan.tengpicturebackend.pictureSpace.utils.picture.PictureProcessRuleEnum;
+import com.zhongyuan.tengpicturebackend.common.utils.picture.PictureProcessRuleEnum;
 import lombok.Data;
 
 import java.io.Serializable;

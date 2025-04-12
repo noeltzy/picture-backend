@@ -1,8 +1,8 @@
-package com.zhongyuan.tengpicturebackend.common.comsumer.PictureTask;
+package com.zhongyuan.tengpicturebackend.common.consumer.PictureTask;
 
 
 import cn.hutool.core.util.ObjUtil;
-import com.zhongyuan.tengpicturebackend.common.comsumer.PictureTask.service.PictureGenTaskService;
+import com.zhongyuan.tengpicturebackend.common.consumer.PictureTask.service.PictureGenTaskService;
 import com.zhongyuan.tengpicturebackend.pictureSpace.exception.BusinessException;
 import com.zhongyuan.tengpicturebackend.common.message.PictureAiMessage;
 import com.zhongyuan.tengpicturebackend.pictureSpace.model.dto.picture.PictureUploadRequest;

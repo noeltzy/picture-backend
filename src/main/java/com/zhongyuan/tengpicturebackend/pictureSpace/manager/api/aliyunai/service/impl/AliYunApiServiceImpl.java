@@ -1,4 +1,4 @@
-package com.zhongyuan.tengpicturebackend.manager.api.aliyunai.service.impl;
+package com.zhongyuan.tengpicturebackend.pictureSpace.manager.api.aliyunai.service.impl;
 
 import cn.hutool.core.util.StrUtil;
 import cn.hutool.http.ContentType;
@@ -6,15 +6,15 @@ import cn.hutool.http.Header;
 import cn.hutool.http.HttpRequest;
 import cn.hutool.http.HttpResponse;
 import cn.hutool.json.JSONUtil;
-import com.zhongyuan.tengpicturebackend.manager.api.aliyunai.config.AliyunConfig;
-import com.zhongyuan.tengpicturebackend.manager.api.aliyunai.model.genPicture.ImageGenerationResponse;
-import com.zhongyuan.tengpicturebackend.manager.api.aliyunai.model.outPainting.CreateOutPaintingTaskRequest;
-import com.zhongyuan.tengpicturebackend.manager.api.aliyunai.model.common.CreateTaskResponse;
-import com.zhongyuan.tengpicturebackend.manager.api.aliyunai.model.outPainting.GetOutPaintingTaskResponse;
-import com.zhongyuan.tengpicturebackend.manager.api.aliyunai.model.genPicture.GenPictureRequest;
-import com.zhongyuan.tengpicturebackend.manager.api.aliyunai.service.AliYunApiService;
-import com.zhongyuan.tengpicturebackend.exception.BusinessException;
-import com.zhongyuan.tengpicturebackend.exception.ErrorCode;
+import com.zhongyuan.tengpicturebackend.pictureSpace.manager.api.aliyunai.config.AliyunConfig;
+import com.zhongyuan.tengpicturebackend.pictureSpace.manager.api.aliyunai.model.genPicture.ImageGenerationResponse;
+import com.zhongyuan.tengpicturebackend.pictureSpace.manager.api.aliyunai.model.outPainting.CreateOutPaintingTaskRequest;
+import com.zhongyuan.tengpicturebackend.pictureSpace.manager.api.aliyunai.model.common.CreateTaskResponse;
+import com.zhongyuan.tengpicturebackend.pictureSpace.manager.api.aliyunai.model.outPainting.GetOutPaintingTaskResponse;
+import com.zhongyuan.tengpicturebackend.pictureSpace.manager.api.aliyunai.model.genPicture.GenPictureRequest;
+import com.zhongyuan.tengpicturebackend.pictureSpace.manager.api.aliyunai.service.AliYunApiService;
+import com.zhongyuan.tengpicturebackend.pictureSpace.exception.BusinessException;
+import com.zhongyuan.tengpicturebackend.pictureSpace.exception.ErrorCode;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 

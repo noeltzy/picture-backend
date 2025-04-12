@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.zhongyuan.tengpicturebackend.vip.mapper.UserVipMapper">
+
+    <resultMap id="BaseResultMap" type="com.zhongyuan.tengpicturebackend.vip.model.entity.UserVip">
+            <id property="id" column="id" />
+            <result property="userId" column="userId" />
+            <result property="vipLevel" column="vipLevel" />
+            <result property="totalTokens" column="totalTokens" />
+            <result property="usedTokens" column="usedTokens" />
+            <result property="dailyLimit" column="dailyLimit" />
+            <result property="startTime" column="startTime" />
+            <result property="endTime" column="endTime" />
+            <result property="status" column="status" />
+            <result property="createTime" column="createTime" />
+            <result property="orderNo" column="orderNo" />
+            <result property="updateTime" column="updateTime" />
+            <result property="isDelete" column="isDelete" />
+    </resultMap>
+
+    <sql id="Base_Column_List">
+        id,userId,vipLevel,totalTokens,usedTokens,dailyLimit,
+        startTime,endTime,status,createTime,orderNo,
+        updateTime,isDelete
+    </sql>
+</mapper>

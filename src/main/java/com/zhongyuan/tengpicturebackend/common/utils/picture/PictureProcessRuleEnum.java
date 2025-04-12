@@ -1,4 +1,4 @@
-package com.zhongyuan.tengpicturebackend.pictureSpace.utils.picture;
+package com.zhongyuan.tengpicturebackend.common.utils.picture;
 
 
 import lombok.Getter;

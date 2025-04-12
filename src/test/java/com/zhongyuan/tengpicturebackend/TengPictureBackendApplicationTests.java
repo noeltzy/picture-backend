@@ -1,16 +1,15 @@
 package com.zhongyuan.tengpicturebackend;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
-import com.baomidou.mybatisplus.extension.conditions.query.LambdaQueryChainWrapper;
 import com.qcloud.cos.COSClient;
 import com.qcloud.cos.model.ObjectMetadata;
 import com.qcloud.cos.model.ciModel.common.ImageProcessRequest;
 import com.qcloud.cos.model.ciModel.persistence.CIUploadResult;
 import com.qcloud.cos.model.ciModel.persistence.PicOperations;
-import com.zhongyuan.tengpicturebackend.config.CosConfig;
-import com.zhongyuan.tengpicturebackend.manager.cos.CosManager;
-import com.zhongyuan.tengpicturebackend.model.entity.Picture;
-import com.zhongyuan.tengpicturebackend.service.PictureService;
+import com.zhongyuan.tengpicturebackend.common.config.CosConfig;
+import com.zhongyuan.tengpicturebackend.pictureSpace.manager.cos.CosManager;
+import com.zhongyuan.tengpicturebackend.pictureSpace.model.entity.Picture;
+import com.zhongyuan.tengpicturebackend.pictureSpace.service.PictureService;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
 

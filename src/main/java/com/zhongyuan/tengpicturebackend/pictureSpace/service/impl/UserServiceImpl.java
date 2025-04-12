@@ -1,20 +1,20 @@
-package com.zhongyuan.tengpicturebackend.service.impl;
+package com.zhongyuan.tengpicturebackend.pictureSpace.service.impl;
 
 import cn.hutool.core.util.StrUtil;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
-import com.zhongyuan.tengpicturebackend.constant.UserConstant;
-import com.zhongyuan.tengpicturebackend.exception.BusinessException;
-import com.zhongyuan.tengpicturebackend.exception.ErrorCode;
-import com.zhongyuan.tengpicturebackend.exception.ThrowUtils;
-import com.zhongyuan.tengpicturebackend.mapper.UserMapper;
-import com.zhongyuan.tengpicturebackend.model.dto.user.UserLoginRequest;
-import com.zhongyuan.tengpicturebackend.model.dto.user.UserQueryRequest;
-import com.zhongyuan.tengpicturebackend.model.dto.user.UserRegisterRequest;
-import com.zhongyuan.tengpicturebackend.model.entity.User;
-import com.zhongyuan.tengpicturebackend.model.enums.UserRoleEnum;
-import com.zhongyuan.tengpicturebackend.model.vo.LoginUserVo;
-import com.zhongyuan.tengpicturebackend.service.UserService;
+import com.zhongyuan.tengpicturebackend.pictureSpace.constant.UserConstant;
+import com.zhongyuan.tengpicturebackend.pictureSpace.exception.BusinessException;
+import com.zhongyuan.tengpicturebackend.pictureSpace.exception.ErrorCode;
+import com.zhongyuan.tengpicturebackend.pictureSpace.exception.ThrowUtils;
+import com.zhongyuan.tengpicturebackend.pictureSpace.mapper.UserMapper;
+import com.zhongyuan.tengpicturebackend.pictureSpace.model.dto.user.UserLoginRequest;
+import com.zhongyuan.tengpicturebackend.pictureSpace.model.dto.user.UserQueryRequest;
+import com.zhongyuan.tengpicturebackend.pictureSpace.model.dto.user.UserRegisterRequest;
+import com.zhongyuan.tengpicturebackend.pictureSpace.model.entity.User;
+import com.zhongyuan.tengpicturebackend.pictureSpace.model.enums.UserRoleEnum;
+import com.zhongyuan.tengpicturebackend.pictureSpace.model.vo.LoginUserVo;
+import com.zhongyuan.tengpicturebackend.pictureSpace.service.UserService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.util.DigestUtils;
@@ -138,6 +138,18 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
     @Override
     public boolean isAdmin(User loginUser) {
         return loginUser!=null &&UserConstant.ADMIN_ROLE.equals(loginUser.getUserRole());
+    }
+
+    @Override
+    public User getLoginUserOrNoLogin(HttpServletRequest request) {
+        // 查询缓存
+        Object attribute = request.getSession().getAttribute(UserConstant.USER_LOGIN_STATUS);
+        User user = (User) attribute;
+        if (user == null || user.getId() == null) {
+           return  null;
+        }
+        // 查询数据库 最求性能可以关闭
+        return this.getById(user.getId());
     }
 
 }
